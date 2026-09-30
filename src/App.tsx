@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentType } from 'react'
-import { useProgreso } from './lib/progreso'
+import { ContextoAvance, useProgreso } from './lib/progreso'
 import type { PropsParada } from './componentes/Parada'
+import { Examen, estrellas, PREGUNTAS_PRUEBA } from './componentes/Prueba'
 import { CURSOS } from './contenido/catalogo'
 import { Cursos, Lecciones, Logo, Materias } from './Menus'
 import Mapa, { EJERCICIOS } from './Mapa'
@@ -40,7 +41,8 @@ function useRuta(): string[] {
 
 export default function App() {
   const [idCurso, idMateria, idLeccion, idParada, modo] = useRuta()
-  const { progreso, apuntar } = useProgreso()
+  const avanceTotal = useProgreso()
+  const { progreso, apuntar } = avanceTotal
 
   const curso = CURSOS.find((c) => c.id === idCurso && c.materias.length)
   const materia = curso?.materias.find((m) => m.id === idMateria && m.lecciones.length)
@@ -55,10 +57,12 @@ export default function App() {
 
   function avance(): string {
     const ids = Object.values(EJERCICIOS).flat()
-    return `${ids.filter((id) => progreso.hechos[id]).length} de ${ids.length} ejercicios de clase`
+    const conseguidas = Object.keys(PARADAS).reduce((t, p) => t + estrellas(progreso.pruebas[p], PREGUNTAS_PRUEBA), 0)
+    return `★ ${conseguidas} de 24 · ${ids.filter((id) => progreso.hechos[id]).length} de ${ids.length} ejercicios de clase`
   }
 
   return (
+    <ContextoAvance.Provider value={avanceTotal}>
     <div className="mx-auto max-w-4xl px-4 pb-10">
       {curso && (
         <header className="flex flex-wrap items-center gap-x-3 gap-y-1 py-4">
@@ -84,6 +88,10 @@ export default function App() {
           <div className="tablero">
             <Parada key={idParada} modo={modo} progreso={progreso} apuntar={apuntar} />
           </div>
+        ) : leccion && idParada === 'examen' ? (
+          <div className="tablero">
+            <Examen />
+          </div>
         ) : leccion ? (
           <Mapa progreso={progreso} />
         ) : materia && curso ? (
@@ -95,5 +103,6 @@ export default function App() {
         )}
       </main>
     </div>
+    </ContextoAvance.Provider>
   )
 }

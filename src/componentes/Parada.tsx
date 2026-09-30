@@ -2,15 +2,18 @@ import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { Progreso } from '../lib/progreso'
 import { RUTA_TEMA1 } from '../contenido/catalogo'
+import { Prueba } from './Prueba'
 
 export const MODOS = [
   ['entender', 'Entender'],
   ['probar', 'Probar'],
   ['desmenuzar', 'Desmenuzar'],
   ['practicar', 'Practicar'],
+  ['prueba', 'Prueba'],
 ] as const
 
-export type Modo = (typeof MODOS)[number][0]
+/** Los modos que aporta cada parada; la prueba es común y la pone el armazón. */
+export type Modo = Exclude<(typeof MODOS)[number][0], 'prueba'>
 
 /** Lo que recibe cada parada desde la aplicación. */
 export interface PropsParada {
@@ -30,25 +33,26 @@ export default function Parada({ id, titulo, modo, paneles }: { id: string; titu
       </a>
       <h1 className="mt-2 text-3xl font-bold">{titulo}</h1>
 
-      <nav className="mt-4 grid grid-cols-4 gap-1 rounded-2xl bg-slate-200 p-1">
+      <nav className="mt-4 grid grid-cols-5 gap-1 rounded-2xl bg-slate-200 p-1">
         {MODOS.map(([m, nombre]) => (
           <a
             key={m}
             href={`${RUTA_TEMA1}/${id}/${m}`}
-            className={`rounded-xl py-2.5 text-center text-sm font-semibold sm:text-base ${
+            className={`truncate rounded-xl px-1 py-2.5 text-center text-xs font-semibold sm:text-base ${
               m === activo ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600'
             }`}
           >
+            {m === 'prueba' && '★ '}
             {nombre}
           </a>
         ))}
       </nav>
 
-      {/* Los cuatro modos siguen montados: al cambiar de pestaña no se pierde por dónde iba. */}
+      {/* Todos los modos siguen montados: al cambiar de pestaña no se pierde por dónde iba. */}
       <div className="mt-5">
         {MODOS.map(([m]) => (
           <div key={m} hidden={m !== activo}>
-            {paneles[m]}
+            {m === 'prueba' ? <Prueba parada={id} /> : paneles[m]}
           </div>
         ))}
       </div>

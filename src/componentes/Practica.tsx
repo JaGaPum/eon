@@ -1,35 +1,10 @@
 // Modo Practicar común: ejercicios de clase y nuevos, con pistas graduales y aviso de dónde está el fallo.
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { Progreso } from '../lib/progreso'
 import { Aviso, type Mensaje } from './visuales'
-import { CampoEntero, leerEntero } from './piezas'
+import { CampoRespuesta, type Pregunta } from './Respuesta'
 
-export type Entrada =
-  | 'numero'
-  /** Elegir una. */
-  | { opciones: string[] }
-  /** Marcar todas las que valgan. */
-  | { multi: string[] }
-  /** Tocar las fichas en el orden pedido. */
-  | { orden: string[]; sep?: '<' | '>' }
-
-export interface Pregunta {
-  /** Único en toda la app: «parada:hoja-número». Vacío en los ejercicios generados. */
-  id: string
-  /** Lo que se ve en la ficha: «5a». */
-  etq: string
-  /** Hoja de la que sale, para agrupar las fichas. */
-  grupo?: string
-  enunciado: ReactNode
-  entrada: Entrada
-  /** Número, opción, o varias unidas con «|» en el orden de las opciones. */
-  correcta: string
-  pistas: ReactNode[]
-  /** Explicación que se muestra al acertar. */
-  acierto?: ReactNode
-  /** Diagnóstico de un fallo concreto; si no devuelve nada se usa el genérico. */
-  fallo?: (resp: string) => ReactNode | undefined
-}
+export type { Entrada, Pregunta } from './Respuesta'
 
 interface Estado {
   serie: 'clase' | 'nuevos'
@@ -48,6 +23,27 @@ interface Props {
   apuntar: (id?: string) => void
 }
 
+/** Qué decir cuando falla y la pregunta no trae un diagnóstico propio. */
+function falloGenerico(q: Pregunta, respuesta: string): string {
+  const e = q.entrada
+  const dadas = respuesta ? respuesta.split('|') : []
+  const buenas = q.correcta ? q.correcta.split('|') : []
+  if (typeof e === 'object' && 'multi' in e) {
+    const sobran = dadas.filter((x) => !buenas.includes(x))
+    const faltan = buenas.filter((x) => !dadas.includes(x)).length
+    return [sobran.length ? `${sobran.join(', ')} no ${sobran.length > 1 ? 'valen' : 'vale'}.` : '', faltan ? `Te ${faltan > 1 ? 'faltan' : 'falta'} ${faltan} por marcar.` : '']
+      .join(' ')
+      .trim()
+  }
+  if (typeof e === 'object' && 'orden' in e) {
+    const bien = dadas.findIndex((x, i) => x !== buenas[i])
+    if (bien === 0) return 'El primero no es ese. Imagina dónde está cada uno en la recta.'
+    return bien === 1 ? 'El primero está bien. Revisa a partir de ahí.' : `Los ${bien} primeros están bien. Revisa a partir de ahí.`
+  }
+  if (typeof e === 'object' && 'primos' in e) return 'Esos no son sus factores primos. Comprueba que al multiplicarlos sale el número.'
+  return `No es ${respuesta}. Inténtalo de nuevo o pide una pista.`
+}
+
 export default function Practica({ clase, generar, progreso, apuntar }: Props) {
   const pendiente = () => Math.max(0, clase.findIndex((q) => !progreso.hechos[q.id]))
   const abrir = (serie: Estado['serie'], i: number): Estado => ({
@@ -61,19 +57,16 @@ export default function Practica({ clase, generar, progreso, apuntar }: Props) {
   })
 
   const [st, setSt] = useState(() => abrir('clase', pendiente()))
-  const [resp, setResp] = useState('')
-  const [sel, setSel] = useState<string[]>([])
+  // Cada ejercicio abierto estrena campo de respuesta, aunque sea el mismo de antes.
+  const [abiertos, setAbiertos] = useState(0)
   const { q } = st
   const hechos = clase.filter((x) => progreso.hechos[x.id]).length
   const grupos = [...new Set(clase.map((x) => x.grupo ?? ''))]
 
   function ir(nuevo: Estado) {
     setSt(nuevo)
-    setResp('')
-    setSel([])
+    setAbiertos((n) => n + 1)
   }
-
-  const fallo = (texto: ReactNode) => setSt((s) => ({ ...s, msg: { tipo: 'mal', texto }, intentos: s.intentos + 1 }))
 
   function comprobar(respuesta: string) {
     if (respuesta === q.correcta) {
@@ -81,99 +74,8 @@ export default function Practica({ clase, generar, progreso, apuntar }: Props) {
       apuntar(st.serie === 'clase' ? q.id : undefined)
       return
     }
-    const propio = q.fallo?.(respuesta)
-    if (propio) return fallo(propio)
-
-    if (typeof q.entrada === 'object' && 'multi' in q.entrada) {
-      const buenas = q.correcta ? q.correcta.split('|') : []
-      const sobran = sel.filter((x) => !buenas.includes(x))
-      const faltan = buenas.filter((x) => !sel.includes(x)).length
-      fallo(
-        [
-          sobran.length ? `${sobran.join(', ')} no ${sobran.length > 1 ? 'valen' : 'vale'}.` : '',
-          faltan ? `Te ${faltan > 1 ? 'faltan' : 'falta'} ${faltan} por marcar.` : '',
-        ]
-          .join(' ')
-          .trim(),
-      )
-    } else if (typeof q.entrada === 'object' && 'orden' in q.entrada) {
-      const buenas = q.correcta.split('|')
-      const bien = sel.findIndex((x, i) => x !== buenas[i])
-      fallo(bien === 0 ? 'El primero no es ese. Imagina dónde está cada uno en la recta.' : bien === 1 ? 'El primero está bien. Revisa a partir de ahí.' : `Los ${bien} primeros están bien. Revisa a partir de ahí.`)
-    } else {
-      fallo(`No es ${respuesta}. Inténtalo de nuevo o pide una pista.`)
-    }
-  }
-
-  function enviarNumero(ev: FormEvent) {
-    ev.preventDefault()
-    const n = leerEntero(resp)
-    if (n === null) fallo('Escribe un número entero.')
-    else comprobar(String(n))
-  }
-
-  const alternar = (x: string) => setSel(sel.includes(x) ? sel.filter((y) => y !== x) : [...sel, x])
-
-  function entrada() {
-    const e = q.entrada
-    if (e === 'numero') {
-      return (
-        <form onSubmit={enviarNumero} className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold">Respuesta</span>
-          <CampoEntero valor={resp} cambiar={setResp} etiqueta="Respuesta" />
-          <button className="btn btn-primario">Comprobar</button>
-        </form>
-      )
-    }
-    if ('opciones' in e) {
-      return (
-        <div className="flex flex-wrap gap-2">
-          {e.opciones.map((x) => (
-            <button key={x} className="btn" onClick={() => comprobar(x)}>
-              {x}
-            </button>
-          ))}
-        </div>
-      )
-    }
-    if ('multi' in e) {
-      return (
-        <div className="space-y-3">
-          <p className="text-sm text-slate-500">Marca todas las que valgan. Si no vale ninguna, comprueba sin marcar.</p>
-          <div className="flex flex-wrap gap-2">
-            {e.multi.map((x) => (
-              <button key={x} className={`btn ${sel.includes(x) ? 'btn-primario' : ''}`} aria-pressed={sel.includes(x)} onClick={() => alternar(x)}>
-                {x}
-              </button>
-            ))}
-          </div>
-          <button className="btn btn-primario" onClick={() => comprobar(e.multi.filter((x) => sel.includes(x)).join('|'))}>
-            Comprobar
-          </button>
-        </div>
-      )
-    }
-    return (
-      <div className="space-y-3">
-        <p className="text-sm text-slate-500">Toca los números en el orden pedido.</p>
-        <div className="flex flex-wrap gap-2">
-          {e.orden.map((x) => (
-            <button key={x} className="btn text-lg" disabled={sel.includes(x)} onClick={() => setSel([...sel, x])}>
-              {x}
-            </button>
-          ))}
-        </div>
-        <p className="min-h-11 rounded-xl border border-dashed border-slate-300 px-4 py-2 text-xl font-semibold">{sel.join(`  ${e.sep ?? '<'}  `) || '…'}</p>
-        <div className="flex gap-2">
-          <button className="btn" disabled={!sel.length} onClick={() => setSel(sel.slice(0, -1))}>
-            ← Quitar el último
-          </button>
-          <button className="btn btn-primario" disabled={sel.length < e.orden.length} onClick={() => comprobar(sel.join('|'))}>
-            Comprobar
-          </button>
-        </div>
-      </div>
-    )
+    const texto: ReactNode = q.fallo?.(respuesta) ?? falloGenerico(q, respuesta)
+    setSt((s) => ({ ...s, msg: { tipo: 'mal', texto }, intentos: s.intentos + 1 }))
   }
 
   return (
@@ -213,7 +115,7 @@ export default function Practica({ clase, generar, progreso, apuntar }: Props) {
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-5 text-lg leading-relaxed">{q.enunciado}</div>
 
-      {!st.hecho && entrada()}
+      {!st.hecho && <CampoRespuesta key={abiertos} q={q} responder={comprobar} />}
 
       <Aviso msg={st.msg} clave={st.intentos} />
 

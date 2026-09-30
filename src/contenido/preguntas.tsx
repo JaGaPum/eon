@@ -4,6 +4,7 @@ import type { Pregunta } from '../componentes/Practica'
 import { Potencias } from '../componentes/visuales'
 import { ent, Recta } from '../componentes/piezas'
 import { resolver } from '../lib/expresion'
+import { CLASE, type Ejercicio } from './tema1'
 import { agrupar, comunes, CRITERIOS, criterio, esPrimo, factores, paso, productoDe, valor as valorDe, type Potencia } from '../lib/mates'
 
 // Hojas de las que salen los ejercicios. La clave forma parte del id con el que se guarda el progreso.
@@ -634,6 +635,65 @@ export function nuevaCombinadas(): Pregunta {
     () => `${n()}*{${n()} - [${n()} ${signo()} ${n()}*(${n()} - ${n()})]} ${signo()} ${par(y * entre(2, 6))}/${par(y)}`,
   ])()
   return pExpr(null, op)
+}
+
+// ---------- 2. Descomposición factorial (para las pruebas) ----------
+// Su modo Practicar tiene formato propio (la columna); aquí van las mismas preguntas en formato de prueba.
+
+function pFactores(n: number): Pregunta {
+  const primos = factores(n)
+  return {
+    ...ficha(null),
+    enunciado: <>Descompón en factores primos: <b>{n}</b></>,
+    entrada: { primos: true },
+    correcta: primos.join('|'),
+    pistas: [
+      'Divide entre primos, empezando por los más pequeños, hasta llegar a 1.',
+      <>
+        {n} = {primos.join(' · ')} = <Potencias potencias={agrupar(primos)} />
+      </>,
+    ],
+  }
+}
+
+function pValor(f: Potencia[]): Pregunta {
+  return pNum(null, <>¿Qué número tiene esta descomposición? <b className="whitespace-nowrap"><Potencias potencias={f} /></b></>, valorDe(f), [
+    'Calcula cada potencia por separado y luego multiplica.',
+    `${f.map(([p, e]) => p ** e).join(' · ')} = ${valorDe(f)}`,
+  ])
+}
+
+function pDivisores(n: number): Pregunta {
+  const pot = agrupar(factores(n))
+  return pNum(null, <>¿Cuántos divisores tiene <b>{n}</b>?</>, pot.reduce((t, [, e]) => t * (e + 1), 1), [
+    <>
+      {n} = <Potencias potencias={pot} />
+    </>,
+    `Se suma 1 a cada exponente y se multiplican: ${pot.map(([, e]) => `(${e} + 1)`).join(' · ')}`,
+  ])
+}
+
+const deEjercicio = (e: Ejercicio) => (e.tipo === 'descomponer' ? pFactores(e.n) : e.tipo === 'valor' ? pValor(e.f) : pDivisores(e.n))
+
+export function nuevaDescomposicion(): Pregunta {
+  const tipo = azar(['descomponer', 'descomponer', 'valor', 'divisores'] as const)
+  for (;;) {
+    const primos = Array.from({ length: entre(3, 5) }, () => azar([2, 2, 2, 3, 3, 3, 5, 5, 7, 7, 11, 13]))
+    const n = primos.reduce((a, b) => a * b, 1)
+    if (n <= (tipo === 'divisores' ? 400 : 3000)) return deEjercicio(tipo === 'valor' ? { id: '', tipo, f: agrupar(primos) } : { id: '', tipo, n })
+  }
+}
+
+/** De dónde salen las preguntas de la prueba de cada parada: las de clase y el generador de nuevas. */
+export const BANCOS: Record<string, { clase: Pregunta[]; generar: () => Pregunta }> = {
+  reglas: { clase: REGLAS, generar: nuevaReglas },
+  descomposicion: { clase: CLASE.map(deEjercicio), generar: nuevaDescomposicion },
+  mcd: { clase: MCD, generar: nuevaMcd },
+  mcm: { clase: MCM, generar: nuevaMcm },
+  enteros: { clase: ENTEROS, generar: nuevaEnteros },
+  sumas: { clase: SUMAS, generar: nuevaSumas },
+  productos: { clase: PRODUCTOS, generar: nuevaProductos },
+  combinadas: { clase: COMBINADAS, generar: nuevaCombinadas },
 }
 
 // ---------- Para el mapa ----------

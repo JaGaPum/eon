@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { analizar, aplicar, escribir, motivo, resolver, siguiente } from './expresion'
 import {
+  BANCOS,
   COMBINADAS,
   COMBINADAS_1,
   COMBINADAS_2,
@@ -147,6 +148,23 @@ describe('ejercicios', () => {
     expect(resp(PRODUCTOS, 'productos:A18d')).toBe('-35')
     expect(resp(COMBINADAS, 'combinadas:A19a')).toBe('25')
     expect(resp(COMBINADAS, 'combinadas:A20a')).toBe('-156')
+  })
+})
+
+describe('bancos de las pruebas', () => {
+  it('cada parada tiene preguntas de clase y un generador que funciona', () => {
+    expect(Object.keys(BANCOS)).toHaveLength(8)
+    for (const banco of Object.values(BANCOS)) {
+      expect(banco.clase.length).toBeGreaterThanOrEqual(4)
+      for (const q of [...banco.clase, ...Array.from({ length: 50 }, banco.generar)]) {
+        expect(typeof q.correcta).toBe('string')
+        expect(q.pistas.length).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('la descomposición se responde con los factores de menor a mayor', () => {
+    expect(BANCOS.descomposicion.clase.find((q) => typeof q.entrada === 'object' && 'primos' in q.entrada)?.correcta).toBe('2|2|2|2|19')
   })
 })
 

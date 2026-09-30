@@ -3,15 +3,32 @@ import { BLOQUES, CLASE, TITULO } from './contenido/tema1'
 import { RUTA_TEMA1 } from './contenido/catalogo'
 import { IDS } from './contenido/preguntas'
 import type { Progreso } from './lib/progreso'
+import { estrellas, examenAbierto, notaExamen, PREGUNTAS_EXAMEN, PREGUNTAS_PRUEBA } from './componentes/Prueba'
 
 // Ejercicios de clase de cada parada, para pintar el avance en el mapa.
 export const EJERCICIOS: Record<string, string[]> = { ...IDS, descomposicion: CLASE.map((e) => e.id) }
 
+function EstrellasMapa({ n }: { n: number }) {
+  return (
+    <span className="text-lg tracking-wide" role="img" aria-label={`${n} de 3 estrellas`}>
+      <span className="text-amber-300">{'★'.repeat(n)}</span>
+      <span className="text-white/20">{'★'.repeat(3 - n)}</span>
+    </span>
+  )
+}
+
 export default function Mapa({ progreso }: { progreso: Progreso }) {
+  const abierto = examenAbierto(progreso.pruebas)
+  const mejor = progreso.pruebas.examen
+  const total = BLOQUES.flatMap((b) => b.estaciones).reduce((t, e) => t + estrellas(progreso.pruebas[e.id], PREGUNTAS_PRUEBA), 0)
+
   return (
     <>
       <h1 className="text-3xl font-bold text-white">{TITULO}</h1>
       <p className="mt-1 text-indigo-200">Ocho paradas en la ruta. Puedes entrar, salir y volver cuando quieras.</p>
+      <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 font-bold text-amber-200">
+        <span className="text-xl">★</span> {total} de 24 estrellas
+      </p>
 
       {BLOQUES.map((bloque) => (
         <section key={bloque.titulo}>
@@ -39,7 +56,10 @@ export default function Mapa({ progreso }: { progreso: Progreso }) {
                     {completa ? '✓' : e.num}
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <b className="text-lg text-white">{e.titulo}</b>
+                    <span className="flex flex-wrap items-center justify-between gap-x-2">
+                      <b className="text-lg text-white">{e.titulo}</b>
+                      <EstrellasMapa n={estrellas(progreso.pruebas[e.id], PREGUNTAS_PRUEBA)} />
+                    </span>
                     <span className="text-sm text-indigo-200">{e.resumen}</span>
                     <span className="mt-2 h-2 overflow-hidden rounded-full bg-white/15">
                       <span className={`block h-full rounded-full ${completa ? 'bg-emerald-400' : 'bg-amber-300'}`} style={{ width: `${ids.length ? (100 * hechos) / ids.length : 0}%` }} />
@@ -54,6 +74,24 @@ export default function Mapa({ progreso }: { progreso: Progreso }) {
           </div>
         </section>
       ))}
+
+      <h2 className="mt-8 mb-3 text-sm font-bold tracking-widest text-indigo-300 uppercase">Misión final</h2>
+      <motion.a
+        href={`${RUTA_TEMA1}/examen`}
+        whileHover={{ y: -4 }}
+        className={`cristal flex items-center gap-4 p-4 hover:bg-white/[0.12] ${abierto ? 'border-amber-300/70' : 'border-dashed opacity-70'}`}
+      >
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-orange-600 text-2xl shadow-lg shadow-orange-500/30" aria-hidden="true">
+          {abierto ? '🚀' : '🔒'}
+        </span>
+        <span className="flex flex-col">
+          <b className="text-lg text-white">Examen de todo el tema</b>
+          <span className="text-sm text-indigo-200">
+            {abierto ? `${PREGUNTAS_EXAMEN} preguntas, dos de cada parada, con nota sobre 10.` : 'Se abre con al menos una estrella en la prueba de cada parada.'}
+          </span>
+          {mejor !== undefined && <span className="mt-1 text-sm font-semibold text-amber-200">Tu mejor nota: {notaExamen(mejor)}</span>}
+        </span>
+      </motion.a>
     </>
   )
 }
