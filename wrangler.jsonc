@@ -1,0 +1,8 @@
+// Publicación en Cloudflare: sirve la carpeta dist/ como web estática.
+{
+  "name": "eon",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
