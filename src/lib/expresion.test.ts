@@ -21,6 +21,7 @@ import {
   SUMAS,
 } from '../contenido/preguntas'
 import { comunes, criterio, CRITERIOS, mcd, mcm } from './mates'
+import { esCorrecta, escribirRespuesta } from '../componentes/Respuesta'
 
 // Soluciones impresas en las hojas del profesor.
 const SOLUCIONES_1: Record<number, number> = {
@@ -161,6 +162,19 @@ describe('bancos de las pruebas', () => {
         expect(q.pistas.length).toBeGreaterThan(0)
       }
     }
+  })
+
+  it('el m.c.d. y el m.c.m. se aceptan con el número o en potencias', () => {
+    const q = MCD.find((x) => x.id === 'mcd:A10a')! // 81 y 99: m.c.d. = 3² = 9
+    expect(esCorrecta(q, '9')).toBe(true)
+    expect(esCorrecta(q, 'p:3^2')).toBe(true)
+    expect(esCorrecta(q, 'p:3^4')).toBe(false)
+    expect(q.fallo?.('p:3^4')).toContain('menor exponente')
+    expect(q.fallo?.('p:3^2*11^1')).toBeTruthy()
+    expect(q.fallo?.('p:3^2*5^1')).toContain('no aparece')
+    expect(escribirRespuesta(q, 'p:3^2*11^1')).toBe('3² · 11 = 99')
+    const problema = MCD.find((x) => x.id === 'mcd:P1')!
+    expect(problema.entrada).toBe('numero')
   })
 
   it('la descomposición se responde con los factores de menor a mayor', () => {

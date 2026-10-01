@@ -239,6 +239,9 @@ export default function Practicar({ progreso, apuntar }: Props) {
               ) : (
                 <form onSubmit={comprobarFila} className="space-y-3">
                   <p className="font-semibold">Siguiente fila de la columna:</p>
+                  <p className="text-slate-600">
+                    En el primer hueco, el primo entre el que divides {m}. En el segundo, el resultado de la división. Repite hasta que el cociente sea 1: al final la app escribe el resultado en potencias.
+                  </p>
                   <div className="flex flex-wrap items-center gap-2 text-2xl font-bold">
                     {m} :
                     <input className="campo" inputMode="numeric" aria-label="Primo" placeholder="primo" value={primo} onChange={(ev) => setPrimo(ev.target.value)} />
@@ -259,6 +262,7 @@ export default function Practicar({ progreso, apuntar }: Props) {
           <p className="text-center text-3xl font-bold">
             <Potencias potencias={e.f} />
           </p>
+          <p className="text-slate-600">Calcula cada potencia, multiplica los resultados y responde con el número final.</p>
           {respuesta}
         </>
       )}
@@ -268,6 +272,7 @@ export default function Practicar({ progreso, apuntar }: Props) {
           <p className="text-lg">
             {etiqueta}¿Cuántos divisores tiene <b>{e.n}</b>?
           </p>
+          <p className="text-slate-600">Responde con un número: cuántos divisores tiene en total, contando el 1 y el propio {e.n}.</p>
           {respuesta}
         </>
       )}

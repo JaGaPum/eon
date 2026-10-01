@@ -1,6 +1,7 @@
 // Ejercicios del modo Practicar de cada parada: los de las hojas de clase y los generadores de ejercicios nuevos.
 import type { ReactNode } from 'react'
 import type { Pregunta } from '../componentes/Practica'
+import { potenciasDe, valorRespuesta } from '../componentes/Respuesta'
 import { Potencias } from '../componentes/visuales'
 import { ent, Recta } from '../componentes/piezas'
 import { resolver } from '../lib/expresion'
@@ -115,7 +116,8 @@ function pMcd(sitio: Sitio, nums: number[], modo: 'mcd' | 'mcm', problema?: { en
   return {
     ...ficha(sitio),
     enunciado: problema?.enunciado ?? `Calcula el ${nombre} de ${juntar(nums)}.`,
-    entrada: 'numero',
+    // En los problemas se pide una cantidad («cuántas piezas»): ahí solo vale el número.
+    entrada: problema ? 'numero' : { numeroOPotencias: true },
     correcta: String(valor),
     acierto: problema?.acierto,
     pistas: [
@@ -134,10 +136,20 @@ function pMcd(sitio: Sitio, nums: number[], modo: 'mcd' | 'mcm', problema?: { en
         {nombre} = {elegidas.length ? <Potencias potencias={elegidas} /> : '1 (no tienen ningún factor primo común)'}
       </>,
     ],
-    fallo: (resp) =>
-      Number(resp) === otro && otro !== valor
-        ? `Ese número es el ${modo === 'mcd' ? 'mínimo común múltiplo' : 'máximo común divisor'}, y se pide el ${nombre} ${modo === 'mcd' ? 'Para el m.c.d. solo valen los factores comunes, con el menor exponente.' : 'Para el m.c.m. entran todos los factores, con el mayor exponente.'}`
-        : undefined,
+    fallo: (resp) => {
+      if (valorRespuesta(resp) === otro && otro !== valor) {
+        return `Eso es el ${modo === 'mcd' ? 'mínimo común múltiplo' : 'máximo común divisor'}, y se pide el ${nombre} ${
+          modo === 'mcd' ? 'Para el m.c.d. solo valen los factores comunes, con el menor exponente.' : 'Para el m.c.m. entran todos los factores, con el mayor exponente.'
+        }`
+      }
+      // Si respondió en potencias se le puede decir qué primo falla.
+      const dadas = potenciasDe(resp)
+      if (!dadas) return undefined
+      const ajeno = dadas.find(([p]) => !cols.some((c) => c.primo === p))
+      if (ajeno) return `El ${ajeno[0]} no aparece en la descomposición de ninguno de los números, así que no puede estar en el ${nombre}`
+      const mal = cols.find((c) => (new Map(dadas).get(c.primo) ?? 0) !== c.elegido)
+      return mal && `Revisa el ${mal.primo}. ${mal.razon}`
+    },
   }
 }
 
@@ -252,7 +264,7 @@ const ejercicio12 = (modo: 'mcd' | 'mcm') =>
               </b>
             </span>
           ))}
-          . Escribe el resultado como un número.
+          .
         </>
       ),
       pista: 'Los números ya vienen descompuestos: no hay que calcularlos, solo elegir los factores.',
@@ -644,7 +656,7 @@ function pFactores(n: number): Pregunta {
   const primos = factores(n)
   return {
     ...ficha(null),
-    enunciado: <>Descompón en factores primos: <b>{n}</b></>,
+    enunciado: <>Escribe la descomposición en factores primos de <b>{n}</b>.</>,
     entrada: { primos: true },
     correcta: primos.join('|'),
     pistas: [
@@ -657,7 +669,7 @@ function pFactores(n: number): Pregunta {
 }
 
 function pValor(f: Potencia[]): Pregunta {
-  return pNum(null, <>¿Qué número tiene esta descomposición? <b className="whitespace-nowrap"><Potencias potencias={f} /></b></>, valorDe(f), [
+  return pNum(null, <>¿Qué número tiene esta descomposición? <b className="whitespace-nowrap"><Potencias potencias={f} /></b> Calcula las potencias, multiplícalas y responde con el número final.</>, valorDe(f), [
     'Calcula cada potencia por separado y luego multiplica.',
     `${f.map(([p, e]) => p ** e).join(' · ')} = ${valorDe(f)}`,
   ])
@@ -665,7 +677,7 @@ function pValor(f: Potencia[]): Pregunta {
 
 function pDivisores(n: number): Pregunta {
   const pot = agrupar(factores(n))
-  return pNum(null, <>¿Cuántos divisores tiene <b>{n}</b>?</>, pot.reduce((t, [, e]) => t * (e + 1), 1), [
+  return pNum(null, <>¿Cuántos divisores tiene <b>{n}</b>? Cuéntalos todos, también el 1 y el propio {n}.</>, pot.reduce((t, [, e]) => t * (e + 1), 1), [
     <>
       {n} = <Potencias potencias={pot} />
     </>,

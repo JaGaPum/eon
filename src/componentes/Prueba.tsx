@@ -6,7 +6,7 @@ import { useAvance } from '../lib/progreso'
 import { RUTA_TEMA1 } from '../contenido/catalogo'
 import { BLOQUES } from '../contenido/tema1'
 import { BANCOS } from '../contenido/preguntas'
-import { CampoRespuesta, escribirRespuesta, type Pregunta } from './Respuesta'
+import { CampoRespuesta, esCorrecta, escribirRespuesta, type Pregunta } from './Respuesta'
 
 export const PREGUNTAS_PRUEBA = 8
 export const PREGUNTAS_EXAMEN = 16
@@ -95,7 +95,7 @@ function Cuestionario({ crear, portada, alTerminar, resultado, conParada }: Prop
   }
 
   const total = items.length
-  const bien = (it: Item) => it.resp === it.q.correcta
+  const bien = (it: Item) => esCorrecta(it.q, it.resp)
   const aciertos = items.filter(bien).length
 
   if (i < total) {
@@ -275,7 +275,7 @@ export function Examen() {
                 <div className="grid gap-2 sm:grid-cols-2">
                   {ESTACIONES.map((e) => {
                     const suyas = items.filter((it) => it.parada === e.id)
-                    const ok = suyas.filter((it) => it.resp === it.q.correcta).length
+                    const ok = suyas.filter((it) => esCorrecta(it.q, it.resp)).length
                     return (
                       <a
                         key={e.id}

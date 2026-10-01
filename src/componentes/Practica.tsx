@@ -2,7 +2,7 @@
 import { useState, type ReactNode } from 'react'
 import type { Progreso } from '../lib/progreso'
 import { Aviso, type Mensaje } from './visuales'
-import { CampoRespuesta, type Pregunta } from './Respuesta'
+import { CampoRespuesta, esCorrecta, escribirRespuesta, type Pregunta } from './Respuesta'
 
 export type { Entrada, Pregunta } from './Respuesta'
 
@@ -41,7 +41,7 @@ function falloGenerico(q: Pregunta, respuesta: string): string {
     return bien === 1 ? 'El primero está bien. Revisa a partir de ahí.' : `Los ${bien} primeros están bien. Revisa a partir de ahí.`
   }
   if (typeof e === 'object' && 'primos' in e) return 'Esos no son sus factores primos. Comprueba que al multiplicarlos sale el número.'
-  return `No es ${respuesta}. Inténtalo de nuevo o pide una pista.`
+  return `No es ${escribirRespuesta(q, respuesta)}. Inténtalo de nuevo o pide una pista.`
 }
 
 export default function Practica({ clase, generar, progreso, apuntar }: Props) {
@@ -69,7 +69,7 @@ export default function Practica({ clase, generar, progreso, apuntar }: Props) {
   }
 
   function comprobar(respuesta: string) {
-    if (respuesta === q.correcta) {
+    if (esCorrecta(q, respuesta)) {
       setSt((s) => ({ ...s, hecho: true, msg: { tipo: 'bien', texto: q.acierto ?? '¡Correcto!' }, intentos: s.intentos + 1 }))
       apuntar(st.serie === 'clase' ? q.id : undefined)
       return
