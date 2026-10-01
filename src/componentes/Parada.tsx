@@ -2,7 +2,9 @@ import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { Progreso } from '../lib/progreso'
 import { RUTA_TEMA1 } from '../contenido/catalogo'
+import { VIDEOS } from '../contenido/tema1'
 import { Prueba } from './Prueba'
+import { TarjetaVideos, VentanaVideo } from './Videos'
 
 export const MODOS = [
   ['entender', 'Entender'],
@@ -25,13 +27,25 @@ export interface PropsParada {
 /** Armazón común: título, pestañas y los cuatro modos. */
 export default function Parada({ id, titulo, modo, paneles }: { id: string; titulo: string; modo?: string; paneles: Record<Modo, ReactNode> }) {
   const activo = MODOS.find(([m]) => m === modo)?.[0] ?? 'entender'
+  const videos = VIDEOS[id] ?? []
+  const [video, setVideo] = useState<number | null>(null)
+  // En la prueba no hay ayudas: el vídeo se oculta mientras está en esa pestaña.
+  const conVideo = videos.length > 0 && activo !== 'prueba'
 
   return (
     <>
       <a href={RUTA_TEMA1} className="font-semibold text-indigo-700">
         ← Mapa del tema
       </a>
-      <h1 className="mt-2 text-3xl font-bold">{titulo}</h1>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold">{titulo}</h1>
+        {conVideo && (
+          <button className="btn border-red-600 bg-red-600 text-white hover:bg-red-700" onClick={() => setVideo(video === null ? 0 : null)}>
+            {video === null ? '▶ Ver vídeo' : 'Cerrar vídeo'}
+          </button>
+        )}
+      </div>
+      {conVideo && video !== null && <VentanaVideo videos={videos} actual={video} elegir={setVideo} cerrar={() => setVideo(null)} />}
 
       <nav className="mt-4 grid grid-cols-5 gap-1 rounded-2xl bg-slate-200 p-1">
         {MODOS.map(([m, nombre]) => (
@@ -52,6 +66,7 @@ export default function Parada({ id, titulo, modo, paneles }: { id: string; titu
       <div className="mt-5">
         {MODOS.map(([m]) => (
           <div key={m} hidden={m !== activo}>
+            {m === 'entender' && videos.length > 0 && <TarjetaVideos videos={videos} abrir={setVideo} />}
             {m === 'prueba' ? <Prueba parada={id} /> : paneles[m]}
           </div>
         ))}

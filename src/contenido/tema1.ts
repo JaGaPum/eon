@@ -36,6 +36,33 @@ export const BLOQUES: { titulo: string; estaciones: Estacion[] }[] = [
   },
 ]
 
+export interface Video {
+  /** Identificador del vídeo en YouTube. */
+  id: string
+  titulo: string
+  canal: string
+  minutos: number
+}
+
+// Vídeos de cada parada: canales de España que explican con el mismo método que su libro.
+// Comprobados título, canal, duración y que YouTube permite insertarlos; el contenido lo revisa la familia.
+export const VIDEOS: Record<string, Video[]> = {
+  reglas: [
+    { id: 'SkwBerst0zM', titulo: 'Criterios de divisibilidad del 2, 3, 4, 5 y 6', canal: 'Susi Profe', minutos: 8 },
+    { id: '7bR6zYybtKU', titulo: 'Criterios de divisibilidad del 7, 8, 9, 10 y 11', canal: 'Susi Profe', minutos: 9 },
+  ],
+  descomposicion: [{ id: '7fT8UrcaVNQ', titulo: 'Descomponer en factores primos: ejemplos y ejercicios', canal: 'unProfesor', minutos: 13 }],
+  mcd: [{ id: 'WwcyUTL1HSk', titulo: 'Máximo común divisor, descomponiendo en factores primos', canal: 'academia JAF', minutos: 9 }],
+  mcm: [{ id: 'db9Rup9RZ44', titulo: 'Mínimo común múltiplo, descomponiendo en factores primos', canal: 'academia JAF', minutos: 14 }],
+  enteros: [{ id: '1LhjazvIT4U', titulo: 'Valor absoluto, opuesto y ordenación en la recta', canal: 'Isabel García · Conectados a las Mates', minutos: 5 }],
+  sumas: [{ id: 'K__84tuj4Ac', titulo: 'Sumar y restar números enteros con paréntesis', canal: 'academia JAF', minutos: 9 }],
+  productos: [{ id: '-ngjIgOKwlk', titulo: 'Multiplicación y división de enteros: la regla de los signos', canal: 'Susi Profe', minutos: 4 }],
+  combinadas: [
+    { id: '2og_LKfeik4', titulo: 'Operaciones combinadas con números enteros (1º y 2º ESO)', canal: 'podemos aprobar matemáticas', minutos: 4 },
+    { id: 'jbnZrSRRHXk', titulo: 'Operaciones combinadas con enteros: 5 ejercicios', canal: 'Susi Profe', minutos: 11 },
+  ],
+}
+
 // Números del ejercicio 9 de su hoja, para verlos resueltos paso a paso.
 export const EJEMPLOS = [126, 356, 408, 512, 375, 1225, 632, 2340]
 
