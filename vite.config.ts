@@ -11,6 +11,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icono.svg', 'alumnos/*'],
+      // La música no se guarda para usar sin conexión (pesa mucho) y sus créditos se abren tal cual.
+      workbox: { navigateFallbackDenylist: [/^\/musica\//] },
       manifest: {
         name: 'Eón',
         short_name: 'Eón',

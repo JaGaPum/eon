@@ -1,6 +1,20 @@
 // Música para concentrarse mientras trabaja. Se pausa sola al abrir un vídeo explicativo y vuelve al cerrarlo.
+// Por defecto suena música propia sin imagen; las bandas sonoras van en el reproductor de YouTube, que debe verse.
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
+
+interface Emisora {
+  id: string
+  titulo: string
+  detalle: string
+  /** Pistas en public/musica/, que se repiten en bucle. Autores y licencias en public/musica/CREDITOS.txt. */
+  pistas: string[]
+}
+
+const EMISORAS: Emisora[] = [
+  { id: 'espacio-profundo', titulo: 'Espacio profundo', detalle: 'Muy tranquila, notas largas', pistas: ['long-note-four', 'long-note-one', 'long-note-two'] },
+  { id: 'viaje-estelar', titulo: 'Viaje estelar', detalle: 'Ambiente con algo más de ritmo', pistas: ['frozen-star', 'out-there', 'observing-the-star', 'outer-space'] },
+]
 
 interface Sesion {
   id: string
@@ -8,35 +22,22 @@ interface Sesion {
   minutos: number
 }
 
-// Sesiones instrumentales y largas, comprobadas que YouTube deja insertarlas. Las suben terceros, así que alguna
-// puede desaparecer: si pasa, se cambia aquí.
+// Sesiones de YouTube instrumentales y largas, comprobadas que se dejan insertar. Las suben terceros, así que
+// alguna puede desaparecer: si pasa, se cambia aquí.
 const SESIONES: Sesion[] = [
-  {
-    id: 'y0Q0jTXhil0',
-    titulo: 'Proyecto Salvación · suite tranquila',
-    minutos: 29,
-  },
-  {
-    id: 'v-Hb0UknaMg',
-    titulo: 'Proyecto Salvación · banda sonora',
-    minutos: 36,
-  },
-  {
-    id: 'u0Riy2fTBvU',
-    titulo: 'Interstellar · música para estudiar',
-    minutos: 60,
-  },
+  { id: 'y0Q0jTXhil0', titulo: 'Proyecto Salvación · suite tranquila', minutos: 29 },
+  { id: 'v-Hb0UknaMg', titulo: 'Proyecto Salvación · banda sonora', minutos: 36 },
+  { id: 'u0Riy2fTBvU', titulo: 'Interstellar · música para estudiar', minutos: 60 },
   { id: 'UeypVBNjst4', titulo: 'Interstellar · ambiente', minutos: 180 },
   { id: 'n9KUVbwzj9o', titulo: 'Ambiente del espacio', minutos: 60 },
 ]
 
-/** Con qué sesión empieza cada alumno la primera vez. */
-const PRIMERA: Record<string, string> = {
-  mateo: 'y0Q0jTXhil0',
-  olivia: 'n9KUVbwzj9o',
-}
+/** Lo que suena: «a:» música propia, «y:» una sesión de YouTube. */
+type Fuente = `a:${string}` | `y:${string}`
 
-/** Volumen de partida: de fondo, por debajo de la voz de los vídeos. */
+const PRIMERA: Fuente = 'a:espacio-profundo'
+
+/** Volumen de partida, de 0 a 100: de fondo, por debajo de la voz de los vídeos. */
 const VOLUMEN = 35
 
 /** Evento que lanza una parada al abrir o cerrar su vídeo explicativo. */
@@ -47,63 +48,89 @@ export function avisarVideo(abierto: boolean) {
 }
 
 const clave = (alumno: string) => `eon.musica.${alumno}`
+const existe = (f: string) =>
+  f.startsWith('a:') ? EMISORAS.some((e) => `a:${e.id}` === f) : f.startsWith('y:') && SESIONES.some((s) => `y:${s.id}` === f)
 
-function leerSesion(alumno: string): string {
+function leerFuente(alumno: string): Fuente {
   try {
-    const id = localStorage.getItem(clave(alumno))
-    if (id && SESIONES.some((s) => s.id === id)) return id
+    const f = localStorage.getItem(clave(alumno))
+    if (f && existe(f)) return f as Fuente
   } catch {
     // Sin almacenamiento: se usa la de partida.
   }
-  return PRIMERA[alumno] ?? SESIONES[0].id
+  return PRIMERA
 }
 
-/** Botón para la cabecera y, al pulsarlo, el reproductor flotante. */
+/** Botón para la cabecera con su menú, el audio propio y, si se elige, el reproductor de YouTube. */
 export function Musica({ alumno }: { alumno: string }) {
-  const [abierta, setAbierta] = useState(false)
-  const [sesion, setSesion] = useState(() => leerSesion(alumno))
+  const [menu, setMenu] = useState(false)
+  const [elegida, setElegida] = useState(() => leerFuente(alumno))
+  const [activa, setActiva] = useState(false)
   const [enPausa, setEnPausa] = useState(false)
-  // Pequeño, para que no tape el ejercicio; el reproductor sigue a la vista, como pide YouTube.
-  const [mini, setMini] = useState(false)
+  const [pista, setPista] = useState(0)
+  // El reproductor de YouTube, pequeño para que no tape el ejercicio; no puede ocultarse del todo.
+  const [mini, setMini] = useState(true)
+  const audio = useRef<HTMLAudioElement>(null)
   const marco = useRef<HTMLIFrameElement>(null)
-  const sonando = useRef(false)
-  const reanudar = useRef(false)
+  const caja = useRef<HTMLDivElement>(null)
+  const sonandoYT = useRef(false)
+  /** Qué se pausó al abrir un vídeo, para reanudar eso y no otra cosa. */
+  const reanudar = useRef<'audio' | 'yt' | null>(null)
 
-  useEffect(() => setSesion(leerSesion(alumno)), [alumno])
+  useEffect(() => setElegida(leerFuente(alumno)), [alumno])
 
-  function orden(func: string, args: unknown[] = []) {
+  const emisora = elegida.startsWith('a:') ? EMISORAS.find((e) => `a:${e.id}` === elegida) : undefined
+  const sesion = elegida.startsWith('y:') ? SESIONES.find((s) => `y:${s.id}` === elegida) : undefined
+
+  function ordenYT(func: string, args: unknown[] = []) {
     marco.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*')
   }
 
+  // Arranca la música propia al elegirla y pasa a la pista siguiente al acabar cada una.
+  useEffect(() => {
+    const a = audio.current
+    if (!a) return
+    if (activa && emisora) {
+      a.volume = VOLUMEN / 100
+      a.play().catch(() => setActiva(false))
+    } else a.pause()
+  }, [activa, emisora, pista])
+
   // Lo que cuenta el reproductor de YouTube: cuándo está listo y si suena o no.
   useEffect(() => {
-    if (!abierta) return
+    if (!activa || !sesion) return
     function alRecibir(e: MessageEvent) {
       if (e.source !== marco.current?.contentWindow || typeof e.data !== 'string') return
       try {
         const d = JSON.parse(e.data)
-        if (d.event === 'onReady') orden('setVolume', [VOLUMEN])
+        if (d.event === 'onReady') ordenYT('setVolume', [VOLUMEN])
         const estado = d.info?.playerState ?? (d.event === 'onStateChange' ? d.info : undefined)
-        if (typeof estado === 'number') sonando.current = estado === 1
+        if (typeof estado === 'number') sonandoYT.current = estado === 1
       } catch {
         // Mensaje que no es del reproductor.
       }
     }
     window.addEventListener('message', alRecibir)
     return () => window.removeEventListener('message', alRecibir)
-  }, [abierta])
+  }, [activa, sesion])
 
   // Al abrir un vídeo explicativo, la música se calla; al cerrarlo, sigue donde iba.
   useEffect(() => {
     function alVideo(e: Event) {
       const abierto = (e as CustomEvent<boolean>).detail
-      if (abierto && sonando.current) {
-        reanudar.current = true
-        orden('pauseVideo')
+      const a = audio.current
+      if (abierto && a && !a.paused) {
+        reanudar.current = 'audio'
+        a.pause()
+        setEnPausa(true)
+      } else if (abierto && sonandoYT.current) {
+        reanudar.current = 'yt'
+        ordenYT('pauseVideo')
         setEnPausa(true)
       } else if (!abierto && reanudar.current) {
-        reanudar.current = false
-        orden('playVideo')
+        if (reanudar.current === 'audio') a?.play().catch(() => {})
+        else ordenYT('playVideo')
+        reanudar.current = null
         setEnPausa(false)
       }
     }
@@ -111,36 +138,90 @@ export function Musica({ alumno }: { alumno: string }) {
     return () => window.removeEventListener(EVENTO_VIDEO, alVideo)
   }, [])
 
-  function elegir(id: string) {
-    setSesion(id)
+  // El menú se cierra al tocar fuera de él.
+  useEffect(() => {
+    if (!menu) return
+    const fuera = (e: PointerEvent) => !caja.current?.contains(e.target as Node) && setMenu(false)
+    document.addEventListener('pointerdown', fuera)
+    return () => document.removeEventListener('pointerdown', fuera)
+  }, [menu])
+
+  function poner(f: Fuente) {
+    setElegida(f)
+    setPista(0)
+    setActiva(true)
+    setEnPausa(false)
+    reanudar.current = null
+    sonandoYT.current = false
+    setMenu(false)
     try {
-      localStorage.setItem(clave(alumno), id)
+      localStorage.setItem(clave(alumno), f)
     } catch {
       // Si no se puede guardar, la próxima vez empieza por la de partida.
     }
   }
 
-  function cerrar() {
-    setAbierta(false)
-    sonando.current = false
-    reanudar.current = false
+  function parar() {
+    setActiva(false)
     setEnPausa(false)
+    reanudar.current = null
+    sonandoYT.current = false
+    setMenu(false)
   }
 
-  const actual = SESIONES.find((s) => s.id === sesion) ?? SESIONES[0]
+  const opcion = (f: Fuente, titulo: string, detalle: string) => (
+    <button
+      key={f}
+      onClick={() => poner(f)}
+      className={`block w-full cursor-pointer rounded-lg px-3 py-2 text-left hover:bg-white/10 ${activa && elegida === f ? 'bg-white/15' : ''}`}
+    >
+      <b className="block text-sm">
+        {activa && elegida === f && '▶ '}
+        {titulo}
+      </b>
+      <span className="text-xs text-indigo-200">{detalle}</span>
+    </button>
+  )
+
   // enablejsapi deja pausarla desde la app; loop con playlist la repite al terminar.
-  const src = `https://www.youtube-nocookie.com/embed/${actual.id}?autoplay=1&enablejsapi=1&loop=1&playlist=${actual.id}&rel=0&playsinline=1&origin=${encodeURIComponent(location.origin)}`
+  const src =
+    sesion &&
+    `https://www.youtube-nocookie.com/embed/${sesion.id}?autoplay=1&enablejsapi=1&loop=1&playlist=${sesion.id}&rel=0&playsinline=1&origin=${encodeURIComponent(location.origin)}`
 
   return (
-    <>
+    <div ref={caja} className="relative ml-auto">
       <button
-        className="ml-auto cursor-pointer rounded-xl bg-white/10 px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/20"
-        onClick={() => (abierta ? cerrar() : setAbierta(true))}
-        aria-pressed={abierta}
+        className="cursor-pointer rounded-xl bg-white/10 px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/20"
+        onClick={() => setMenu(!menu)}
+        aria-expanded={menu}
+        aria-label={activa ? 'Música: cambiar o parar' : 'Poner música'}
       >
-        {abierta ? '■ Parar música' : '🎵 Música'}
+        🎵{activa ? (enPausa ? ' En pausa' : ' ●') : ' Música'}
       </button>
-      {abierta && (
+
+      {menu && (
+        <div className="absolute top-full right-0 z-50 mt-2 w-72 rounded-2xl bg-slate-900 p-2 text-white shadow-2xl ring-1 ring-white/20">
+          <p className="px-3 pt-1 pb-1 text-xs font-bold tracking-wider text-indigo-300 uppercase">Música tranquila · sin imagen</p>
+          {EMISORAS.map((e) => opcion(`a:${e.id}`, e.titulo, e.detalle))}
+          <p className="px-3 pt-3 pb-1 text-xs font-bold tracking-wider text-indigo-300 uppercase">Bandas sonoras · con reproductor</p>
+          {SESIONES.map((s) => opcion(`y:${s.id}`, s.titulo, `${s.minutos} min · YouTube`))}
+          {activa && (
+            <button className="mt-2 block w-full cursor-pointer rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/20" onClick={parar}>
+              ■ Parar música
+            </button>
+          )}
+          <p className="px-3 pt-2 text-[11px] leading-snug text-indigo-300">
+            Música tranquila: Kevin MacLeod (incompetech.com), CC BY 4.0; yd y wipics (OpenGameArt), CC0.{' '}
+            <a href="/musica/CREDITOS.txt" target="_blank" className="underline">
+              Créditos
+            </a>
+          </p>
+        </div>
+      )}
+
+      <audio ref={audio} src={emisora && `/musica/${emisora.pistas[pista % emisora.pistas.length]}.mp3`} onEnded={() => setPista((p) => p + 1)} preload="none" />
+
+      {activa && sesion && (
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -148,40 +229,22 @@ export function Musica({ alumno }: { alumno: string }) {
           role="region"
           aria-label="Música para concentrarse"
         >
-          <div className="flex items-center gap-2 px-3 pt-2 text-white">
-            <b className="flex-1 truncate text-sm">{mini ? '🎵' : '🎵 Música para concentrarse'}</b>
-            <button className="cursor-pointer rounded-lg px-2 py-1 text-sm font-semibold hover:bg-white/10" onClick={() => setMini(!mini)}>
+          <div className="flex items-center gap-1 px-2 pt-1 text-white">
+            <b className="flex-1 truncate text-xs">{enPausa ? 'En pausa durante el vídeo' : sesion.titulo}</b>
+            <button className="cursor-pointer rounded-lg px-2 py-1 text-xs font-semibold hover:bg-white/10" onClick={() => setMini(!mini)}>
               {mini ? 'Más grande' : 'Más pequeño'}
             </button>
-            <button className="cursor-pointer rounded-lg px-2 py-1 text-lg font-bold hover:bg-white/10" onClick={cerrar} aria-label="Parar la música">
+            <button className="cursor-pointer rounded-lg px-2 py-1 text-base font-bold hover:bg-white/10" onClick={parar} aria-label="Parar la música">
               ✕
             </button>
           </div>
-          {!mini && (
-            <select
-              className="mx-3 my-2 w-[calc(100%-1.5rem)] rounded-lg bg-white/10 px-2 py-1.5 text-sm text-white"
-              value={actual.id}
-              onChange={(e) => elegir(e.target.value)}
-              aria-label="Elige la música"
-            >
-              {SESIONES.map((s) => (
-                <option key={s.id} value={s.id} className="text-slate-900">
-                  {s.titulo} · {s.minutos} min
-                </option>
-              ))}
-            </select>
-          )}
-          {enPausa && (
-            <p className="px-3 pb-2 text-xs text-indigo-200">{mini ? 'En pausa durante el vídeo' : 'En pausa mientras ves el vídeo. Seguirá al cerrarlo.'}</p>
-          )}
-          {mini && !enPausa && <div className="h-2" />}
           <div className="aspect-video bg-black">
             <iframe
-              key={actual.id}
+              key={sesion.id}
               ref={marco}
               className="h-full w-full"
               src={src}
-              title={actual.titulo}
+              title={sesion.titulo}
               allow="autoplay; encrypted-media"
               // Pide al reproductor que cuente su estado; sin esto no se sabe si está sonando.
               onLoad={() => marco.current?.contentWindow?.postMessage(JSON.stringify({ event: 'listening' }), '*')}
@@ -189,6 +252,6 @@ export function Musica({ alumno }: { alumno: string }) {
           </div>
         </motion.div>
       )}
-    </>
+    </div>
   )
 }
