@@ -15,6 +15,8 @@ export interface Materia {
 
 export interface Curso {
   id: string
+  /** Quién lo cursa: cada alumno ve solo sus cursos. */
+  alumno: string
   nombre: string
   /** Época del viaje en el tiempo que da ambiente a cada curso. */
   era: string
@@ -22,12 +24,49 @@ export interface Curso {
   materias: Materia[]
 }
 
+export interface Alumno {
+  id: string
+  nombre: string
+  /** Imagen en public/alumnos/. Para poner una foto, se sustituye el archivo y se cambia aquí la extensión. */
+  imagen: string
+  /** Cómo se presenta su lista de cursos. */
+  etapa: string
+}
+
+export const ALUMNOS: Alumno[] = [
+  { id: 'mateo', nombre: 'Mateo', imagen: '/alumnos/mateo.svg', etapa: 'Educación Secundaria' },
+  { id: 'olivia', nombre: 'Olivia', imagen: '/alumnos/olivia.svg', etapa: 'Educación Primaria' },
+]
+
 const sinLecciones = (id: string, nombre: string, icono: string): Materia => ({ id, nombre, icono, lecciones: [] })
 
 export const CURSOS: Curso[] = [
-  { id: '1eso', nombre: '1º ESO', era: 'Era de los dinosaurios', icono: '🦖', materias: [] },
+  { id: '1primaria', alumno: 'olivia', nombre: '1º Primaria', era: 'Era de los volcanes', icono: '🌋', materias: [] },
+  { id: '2primaria', alumno: 'olivia', nombre: '2º Primaria', era: 'Era de los mamuts', icono: '🦣', materias: [] },
+  {
+    id: '3primaria',
+    alumno: 'olivia',
+    nombre: '3º Primaria',
+    era: 'Era de las pirámides',
+    icono: '🏺',
+    // Áreas de 3º de Primaria en Galicia (Decreto 155/2022), con su nombre oficial.
+    materias: [
+      sinLecciones('matematicas', 'Matemáticas', '🔢'),
+      sinLecciones('lingua-galega', 'Lingua Galega e Literatura', '📜'),
+      sinLecciones('lengua-castellana', 'Lengua Castellana y Literatura', '✒️'),
+      sinLecciones('conecemento-medio', 'Coñecemento do Medio Natural, Social e Cultural', '🌿'),
+      sinLecciones('ingles', 'Inglés', '🛰️'),
+      sinLecciones('educacion-artistica', 'Educación Artística', '🎨'),
+      sinLecciones('educacion-fisica', 'Educación Física', '☄️'),
+    ],
+  },
+  { id: '4primaria', alumno: 'olivia', nombre: '4º Primaria', era: 'Era de los castillos', icono: '🏰', materias: [] },
+  { id: '5primaria', alumno: 'olivia', nombre: '5º Primaria', era: 'Era de los descubridores', icono: '🧭', materias: [] },
+  { id: '6primaria', alumno: 'olivia', nombre: '6º Primaria', era: 'Era de las máquinas', icono: '⚙️', materias: [] },
+  { id: '1eso', alumno: 'mateo', nombre: '1º ESO', era: 'Era de los dinosaurios', icono: '🦖', materias: [] },
   {
     id: '2eso',
+    alumno: 'mateo',
     nombre: '2º ESO',
     era: 'Era de los exploradores',
     icono: '🚀',
@@ -50,8 +89,8 @@ export const CURSOS: Curso[] = [
       sinLecciones('educacion-fisica', 'Educación Física', '☄️'),
     ],
   },
-  { id: '3eso', nombre: '3º ESO', era: 'Era de los inventores', icono: '⚡', materias: [] },
-  { id: '4eso', nombre: '4º ESO', era: 'Era del futuro', icono: '🌌', materias: [] },
+  { id: '3eso', alumno: 'mateo', nombre: '3º ESO', era: 'Era de los inventores', icono: '⚡', materias: [] },
+  { id: '4eso', alumno: 'mateo', nombre: '4º ESO', era: 'Era del futuro', icono: '🌌', materias: [] },
 ]
 
 /** Dirección del Tema 1 de Matemáticas de 2º, de la que cuelgan sus ocho paradas. */

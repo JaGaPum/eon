@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Mateo, astronauta, con un amigo alienígena de roca y cinco patas (guiño a Proyecto Salvación). Se puede sustituir por una foto (mateo.jpg) y cambiar la ruta en src/contenido/catalogo.ts. -->
+  <defs>
+    <radialGradient id="f" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#1e1b4b"/></radialGradient>
+    <linearGradient id="v" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0f2fe" stop-opacity=".55"/><stop offset="1" stop-color="#7dd3fc" stop-opacity=".1"/></linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#f)"/>
+  <circle cx="30" cy="40" r="2" fill="#fff"/><circle cx="170" cy="30" r="1.5" fill="#fff"/><circle cx="160" cy="80" r="2" fill="#fde68a"/><circle cx="40" cy="120" r="1.5" fill="#fff"/>
+  <path d="M40 200c4-38 28-58 60-58s56 20 60 58z" fill="#e2e8f0"/>
+  <rect x="84" y="160" width="32" height="20" rx="4" fill="#4f46e5"/><circle cx="92" cy="170" r="3" fill="#f87171"/><circle cx="108" cy="170" r="3" fill="#4ade80"/>
+  <circle cx="100" cy="92" r="58" fill="#f1f5f9"/>
+  <circle cx="100" cy="94" r="46" fill="#1e293b"/>
+  <circle cx="100" cy="100" r="34" fill="#f2c5a0"/>
+  <path d="M66 96c0-24 14-36 34-36s34 12 34 36c-8-10-20-14-30-14-12 0-28 4-38 14z" fill="#6b3f1f"/>
+  <circle cx="88" cy="104" r="4" fill="#1e293b"/><circle cx="112" cy="104" r="4" fill="#1e293b"/>
+  <path d="M89 117q11 9 22 0" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <circle cx="80" cy="114" r="5" fill="#f87171" opacity=".35"/><circle cx="120" cy="114" r="5" fill="#f87171" opacity=".35"/>
+  <path d="M60 80a46 46 0 0 1 40-32" stroke="url(#v)" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <g transform="translate(150 150)">
+    <path d="M-14 4l-12 22M-6 8l-6 24M2 8l4 24M10 6l12 20M14 0l18 10" stroke="#78716c" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path d="M-20 2l6-18 18-6 16 10 2 16-14 8h-18z" fill="#a8a29e" stroke="#57534e" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M-10-6l8-3M4-8l7 5M-4 4l10-2" stroke="#57534e" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(36 52) rotate(-30)">
+    <path d="M0-14c6 6 6 20 0 28-6-8-6-22 0-28z" fill="#e2e8f0"/>
+    <path d="M-5 10l-4 6M5 10l4 6" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+    <circle cy="-2" r="2.5" fill="#38bdf8"/>
+  </g>
+</svg>

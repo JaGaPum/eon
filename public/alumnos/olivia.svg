@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Olivia, astronauta unicornio con arcoíris. Se puede sustituir por una foto (olivia.jpg) y cambiar la ruta en src/contenido/catalogo.ts. -->
+  <defs>
+    <radialGradient id="f" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#c026d3"/><stop offset="1" stop-color="#3b0764"/></radialGradient>
+    <linearGradient id="v" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fce7f3" stop-opacity=".55"/><stop offset="1" stop-color="#f9a8d4" stop-opacity=".1"/></linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#f)"/>
+  <g fill="none" stroke-width="7" opacity=".85" stroke-linecap="round">
+    <path d="M14 150a86 86 0 0 1 172 0" stroke="#f87171"/>
+    <path d="M22 150a78 78 0 0 1 156 0" stroke="#fbbf24"/>
+    <path d="M30 150a70 70 0 0 1 140 0" stroke="#4ade80"/>
+    <path d="M38 150a62 62 0 0 1 124 0" stroke="#60a5fa"/>
+  </g>
+  <circle cx="28" cy="34" r="2" fill="#fff"/><circle cx="172" cy="40" r="1.5" fill="#fff"/><circle cx="165" cy="90" r="2" fill="#fde68a"/><circle cx="36" cy="130" r="1.5" fill="#fff"/>
+  <path d="M40 200c4-38 28-58 60-58s56 20 60 58z" fill="#e2e8f0"/>
+  <rect x="84" y="160" width="32" height="20" rx="4" fill="#c026d3"/><circle cx="92" cy="170" r="3" fill="#fde68a"/><circle cx="108" cy="170" r="3" fill="#4ade80"/>
+  <circle cx="100" cy="92" r="58" fill="#f1f5f9"/>
+  <circle cx="100" cy="94" r="46" fill="#1e293b"/>
+  <path d="M64 100c-4 18 0 30 6 36h10c-6-10-8-22-6-34zM136 100c4 18 0 30-6 36h-10c6-10 8-22 6-34z" fill="#a0522d"/>
+  <circle cx="100" cy="100" r="33" fill="#f6d2b4"/>
+  <path d="M66 100c0-26 14-40 34-40s34 14 34 40c-10-14-24-20-36-20-10 0-24 6-32 20z" fill="#a0522d"/>
+  <circle cx="126" cy="74" r="6" fill="#f472b6"/>
+  <circle cx="88" cy="104" r="4" fill="#1e293b"/><circle cx="112" cy="104" r="4" fill="#1e293b"/>
+  <path d="M85 98l-3-3M115 98l3-3" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+  <path d="M89 116q11 9 22 0" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <circle cx="80" cy="113" r="5" fill="#f87171" opacity=".4"/><circle cx="120" cy="113" r="5" fill="#f87171" opacity=".4"/>
+  <path d="M60 80a46 46 0 0 1 40-32" stroke="url(#v)" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M92 38L104 2l8 38z" fill="#fde68a" stroke="#f59e0b" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M95 30l14-4M98 20l9-3M101 11l5-2" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+  <path d="M164 30l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#fde68a"/>
+</svg>

@@ -10,7 +10,7 @@ export default defineConfig({
     // Permite instalarla en la tablet como una app y usarla sin conexión.
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icono.svg'],
+      includeAssets: ['icono.svg', 'alumnos/*'],
       manifest: {
         name: 'Eón',
         short_name: 'Eón',

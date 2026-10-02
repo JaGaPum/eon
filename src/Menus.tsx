@@ -1,7 +1,7 @@
-// Menús de entrada: curso → materia → lección. El aspecto es el de un viaje por el espacio y el tiempo.
+// Menús de entrada: alumno → curso → materia → lección. El aspecto es el de un viaje por el espacio y el tiempo.
 import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
-import { CURSOS, type Curso, type Materia } from './contenido/catalogo'
+import { ALUMNOS, CURSOS, type Alumno, type Curso, type Materia } from './contenido/catalogo'
 
 export function Logo({ grande }: { grande?: boolean }) {
   const lado = grande ? 72 : 36
@@ -73,7 +73,7 @@ function Rejilla({ tarjetas }: { tarjetas: Tarjeta[] }) {
   )
 }
 
-export function Cursos() {
+export function Inicio() {
   return (
     <>
       <div className="flex flex-col items-center gap-2 pt-6 text-center">
@@ -83,9 +83,40 @@ export function Cursos() {
         <h1 className="bg-gradient-to-r from-indigo-200 via-white to-fuchsia-200 bg-clip-text text-6xl font-black tracking-tight text-transparent">Eón</h1>
         <p className="text-lg text-indigo-200">Un viaje por el conocimiento, a través del espacio y del tiempo.</p>
       </div>
-      <h2 className="mt-10 text-sm font-bold tracking-widest text-indigo-300 uppercase">Elige tu curso</h2>
+      <h2 className="mt-10 text-center text-sm font-bold tracking-widest text-indigo-300 uppercase">¿Quién viaja hoy?</h2>
+      <div className="mx-auto mt-6 grid max-w-xl grid-cols-2 gap-4">
+        {ALUMNOS.map((a, i) => (
+          <motion.a
+            key={a.id}
+            href={`#/${a.id}`}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.08 }}
+            whileHover={{ y: -6, scale: 1.03 }}
+            className="cristal flex flex-col items-center gap-3 border-indigo-300/50 p-5 hover:bg-white/[0.12]"
+          >
+            <img src={a.imagen} alt="" className="aspect-square w-full max-w-44 rounded-full bg-white/10 object-cover ring-4 ring-white/20" />
+            <b className="text-2xl text-white">{a.nombre}</b>
+            <span className="text-sm text-indigo-200">{a.etapa}</span>
+          </motion.a>
+        ))}
+      </div>
+    </>
+  )
+}
+
+export function Cursos({ alumno }: { alumno: Alumno }) {
+  return (
+    <>
+      <div className="flex items-center gap-4">
+        <img src={alumno.imagen} alt="" className="h-20 w-20 rounded-full bg-white/10 object-cover ring-4 ring-white/20" />
+        <div>
+          <h1 className="text-3xl font-bold text-white">¡Hola, {alumno.nombre}!</h1>
+          <p className="mt-1 text-indigo-200">{alumno.etapa}. Elige tu curso.</p>
+        </div>
+      </div>
       <Rejilla
-        tarjetas={CURSOS.map((c) => ({
+        tarjetas={CURSOS.filter((c) => c.alumno === alumno.id).map((c) => ({
           href: c.materias.length ? `#/${c.id}` : undefined,
           icono: c.icono,
           titulo: c.nombre,

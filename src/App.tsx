@@ -2,8 +2,8 @@ import { useEffect, useState, type ComponentType } from 'react'
 import { ContextoAvance, useProgreso } from './lib/progreso'
 import type { PropsParada } from './componentes/Parada'
 import { Examen, estrellas, PREGUNTAS_PRUEBA } from './componentes/Prueba'
-import { CURSOS } from './contenido/catalogo'
-import { Cursos, Lecciones, Logo, Materias } from './Menus'
+import { ALUMNOS, CURSOS } from './contenido/catalogo'
+import { Cursos, Inicio, Lecciones, Logo, Materias } from './Menus'
 import Mapa, { EJERCICIOS } from './Mapa'
 import Reglas from './paradas/Reglas'
 import Descomposicion from './paradas/descomposicion/Descomposicion'
@@ -44,12 +44,15 @@ export default function App() {
   const avanceTotal = useProgreso()
   const { progreso, apuntar } = avanceTotal
 
+  // La dirección empieza por el curso (#/2eso/...) o, en la lista de cursos, por el alumno (#/olivia).
   const curso = CURSOS.find((c) => c.id === idCurso && c.materias.length)
+  const alumno = ALUMNOS.find((a) => a.id === (curso?.alumno ?? idCurso))
   const materia = curso?.materias.find((m) => m.id === idMateria && m.lecciones.length)
   const leccion = materia?.lecciones.find((l) => l.id === idLeccion)
   const Parada = leccion ? PARADAS[idParada] : undefined
 
   const migas = [
+    alumno && { texto: alumno.nombre, href: `#/${alumno.id}` },
     curso && { texto: curso.nombre, href: `#/${curso.id}` },
     curso && materia && { texto: materia.nombre, href: `#/${curso.id}/${materia.id}` },
     curso && materia && leccion && { texto: leccion.titulo.split(' · ')[0], href: `#/${curso.id}/${materia.id}/${leccion.id}` },
@@ -64,7 +67,7 @@ export default function App() {
   return (
     <ContextoAvance.Provider value={avanceTotal}>
     <div className="mx-auto max-w-4xl px-4 pb-10">
-      {curso && (
+      {alumno && (
         <header className="flex flex-wrap items-center gap-x-3 gap-y-1 py-4">
           <a href="#/" className="flex items-center gap-2 text-2xl font-black text-white">
             <Logo />
@@ -98,8 +101,10 @@ export default function App() {
           <Lecciones curso={curso} materia={materia} avance={avance} />
         ) : curso ? (
           <Materias curso={curso} />
+        ) : alumno ? (
+          <Cursos alumno={alumno} />
         ) : (
-          <Cursos />
+          <Inicio />
         )}
       </main>
     </div>
