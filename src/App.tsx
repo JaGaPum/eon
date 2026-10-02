@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentType } from 'react'
 import { ContextoAvance, useProgreso } from './lib/progreso'
 import type { PropsParada } from './componentes/Parada'
+import { Musica } from './componentes/Musica'
 import { Examen, estrellas, PREGUNTAS_PRUEBA } from './componentes/Prueba'
 import { ALUMNOS, CURSOS } from './contenido/catalogo'
 import { Cursos, Inicio, Lecciones, Logo, Materias } from './Menus'
@@ -83,6 +84,7 @@ export default function App() {
               </span>
             ))}
           </nav>
+          <Musica alumno={alumno.id} />
         </header>
       )}
 

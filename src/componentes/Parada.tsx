@@ -1,9 +1,10 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { Progreso } from '../lib/progreso'
 import { RUTA_TEMA1 } from '../contenido/catalogo'
 import { VIDEOS } from '../contenido/tema1'
 import { Prueba } from './Prueba'
+import { avisarVideo } from './Musica'
 import { TarjetaVideos, VentanaVideo } from './Videos'
 
 export const MODOS = [
@@ -31,6 +32,13 @@ export default function Parada({ id, titulo, modo, paneles }: { id: string; titu
   const [video, setVideo] = useState<number | null>(null)
   // En la prueba no hay ayudas: el vídeo se oculta mientras está en esa pestaña.
   const conVideo = videos.length > 0 && activo !== 'prueba'
+  const viendo = conVideo && video !== null
+
+  // La música de fondo se calla mientras hay un vídeo abierto.
+  useEffect(() => {
+    avisarVideo(viendo)
+    return () => avisarVideo(false)
+  }, [viendo])
 
   return (
     <>
