@@ -31,11 +31,20 @@ export interface Alumno {
   imagen: string
   /** Cómo se presenta su lista de cursos. */
   etapa: string
+  /** Si estudia lo mismo que otro alumno, el id de ese alumno: ve sus cursos. */
+  cursosDe?: string
+  /** Dónde guarda su progreso en el navegador; sin esto, en la clave de partida (la que usaban Mateo y Olivia). */
+  progreso?: string
 }
+
+/** De quién son los cursos que ve un alumno. */
+export const cursosDe = (a: Alumno) => a.cursosDe ?? a.id
 
 export const ALUMNOS: Alumno[] = [
   { id: 'mateo', nombre: 'Mateo', imagen: '/alumnos/mateo.svg', etapa: 'Educación Secundaria' },
   { id: 'olivia', nombre: 'Olivia', imagen: '/alumnos/olivia.svg', etapa: 'Educación Primaria' },
+  // El primo de Mateo: mismo curso, mismas lecciones, pero sus estrellas y notas van aparte.
+  { id: 'pablo', nombre: 'Pablo', imagen: '/alumnos/pablo.svg', etapa: 'Educación Secundaria', cursosDe: 'mateo', progreso: 'eon.progreso.pablo' },
 ]
 
 const sinLecciones = (id: string, nombre: string, icono: string): Materia => ({ id, nombre, icono, lecciones: [] })

@@ -3,7 +3,7 @@ import { ContextoAvance, useProgreso, type Progreso } from './lib/progreso'
 import type { PropsParada } from './componentes/Parada'
 import { Musica } from './componentes/Musica'
 import { Examen, estrellas, PREGUNTAS_PRUEBA } from './componentes/Prueba'
-import { ALUMNOS, CURSOS } from './contenido/catalogo'
+import { ALUMNOS, CURSOS, cursosDe } from './contenido/catalogo'
 import { Cursos, Inicio, Lecciones, Logo, Materias } from './Menus'
 import Mapa, { EJERCICIOS } from './Mapa'
 import Reglas from './paradas/Reglas'
@@ -33,6 +33,26 @@ const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; m
   unite1: { Compoñente: Unite1, avance: avanceUnite1 },
 }
 
+/** El último alumno elegido en la pantalla de inicio, recordado en este dispositivo. */
+function useAlumnoElixido(idCurso: string): string | null {
+  const [elixido, setElixido] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('eon.alumno')
+    } catch {
+      return null
+    }
+  })
+  if (ALUMNOS.some((a) => a.id === idCurso) && idCurso !== elixido) {
+    setElixido(idCurso)
+    try {
+      localStorage.setItem('eon.alumno', idCurso)
+    } catch {
+      // Sin almacenamiento: vale para esta visita.
+    }
+  }
+  return ALUMNOS.some((a) => a.id === idCurso) ? idCurso : elixido
+}
+
 // Navegación por la parte de la dirección tras «#»: #/2eso/matematicas/tema1/mcd/probar
 function useRuta(): string[] {
   const [hash, setHash] = useState(location.hash)
@@ -49,12 +69,16 @@ function useRuta(): string[] {
 
 export default function App() {
   const [idCurso, idMateria, idLeccion, idParada, modo] = useRuta()
-  const avanceTotal = useProgreso()
-  const { progreso, apuntar } = avanceTotal
+  const elixido = useAlumnoElixido(idCurso)
 
   // La dirección empieza por el curso (#/2eso/...) o, en la lista de cursos, por el alumno (#/olivia).
   const curso = CURSOS.find((c) => c.id === idCurso && c.materias.length)
-  const alumno = ALUMNOS.find((a) => a.id === (curso?.alumno ?? idCurso))
+  // Dentro de un curso compartido (Mateo y Pablo), el alumno es el último que se eligió en la pantalla de inicio.
+  const alumno =
+    ALUMNOS.find((a) => a.id === idCurso) ??
+    (curso && (ALUMNOS.find((a) => a.id === elixido && cursosDe(a) === curso.alumno) ?? ALUMNOS.find((a) => a.id === curso.alumno)))
+  const avanceTotal = useProgreso(alumno?.progreso)
+  const { progreso, apuntar } = avanceTotal
   const materia = curso?.materias.find((m) => m.id === idMateria && m.lecciones.length)
   const leccion = materia?.lecciones.find((l) => l.id === idLeccion)
   // Las unidades con juegos (las de Olivia y la de Francés) llevan su propio mapa y sus paradas; el Tema 1 de

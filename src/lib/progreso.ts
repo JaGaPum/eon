@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useState } from 'react'
 
-// El progreso vive en el navegador de cada dispositivo: sin cuentas ni servidor.
-const CLAVE = 'eon.tema1'
+// El progreso vive en el navegador de cada dispositivo: sin cuentas ni servidor. Cada alumno puede tener su clave
+// (ver Alumno.progreso en el catálogo); la de partida es la que usaban Mateo y Olivia desde el principio.
+export const CLAVE_PROGRESO = 'eon.tema1'
 
 export interface Progreso {
   /** Ejercicios de clase resueltos, por id. */
@@ -12,9 +13,9 @@ export interface Progreso {
   pruebas: Record<string, number>
 }
 
-function leer(): Progreso {
+function leer(clave: string): Progreso {
   try {
-    const p = JSON.parse(localStorage.getItem(CLAVE) ?? 'null')
+    const p = JSON.parse(localStorage.getItem(clave) ?? 'null')
     if (p && typeof p.hechos === 'object') {
       return { hechos: p.hechos, nuevos: Number(p.nuevos) || 0, pruebas: p.pruebas && typeof p.pruebas === 'object' ? p.pruebas : {} }
     }
@@ -32,18 +33,21 @@ export interface Avance {
   marcar: (prueba: string, aciertos: number) => void
 }
 
-export function useProgreso(): Avance {
-  const [progreso, setProgreso] = useState(leer)
+export function useProgreso(clave = CLAVE_PROGRESO): Avance {
+  const [estado, setEstado] = useState(() => ({ clave, progreso: leer(clave) }))
+  // Al cambiar de alumno se carga su progreso en el mismo dibujado, sin enseñar un momento el del anterior.
+  if (estado.clave !== clave) setEstado({ clave, progreso: leer(clave) })
+  const progreso = estado.clave === clave ? estado.progreso : leer(clave)
 
   const cambiar = useCallback((f: (p: Progreso) => Progreso) => {
-    setProgreso((p) => {
-      const nuevo = f(p)
+    setEstado((e) => {
+      const nuevo = f(e.progreso)
       try {
-        localStorage.setItem(CLAVE, JSON.stringify(nuevo))
+        localStorage.setItem(e.clave, JSON.stringify(nuevo))
       } catch {
         // Si no se puede guardar, el progreso dura lo que dure la sesión.
       }
-      return nuevo
+      return { clave: e.clave, progreso: nuevo }
     })
   }, [])
 

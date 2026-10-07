@@ -1,7 +1,7 @@
 // Menús de entrada: alumno → curso → materia → lección. El aspecto es el de un viaje por el espacio y el tiempo.
 import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
-import { ALUMNOS, CURSOS, type Alumno, type Curso, type Materia } from './contenido/catalogo'
+import { ALUMNOS, CURSOS, cursosDe, type Alumno, type Curso, type Materia } from './contenido/catalogo'
 
 export function Logo({ grande }: { grande?: boolean }) {
   const lado = grande ? 72 : 36
@@ -84,7 +84,7 @@ export function Inicio() {
         <p className="text-lg text-indigo-200">Un viaje por el conocimiento, a través del espacio y del tiempo.</p>
       </div>
       <h2 className="mt-10 text-center text-sm font-bold tracking-widest text-indigo-300 uppercase">¿Quién viaja hoy?</h2>
-      <div className="mx-auto mt-6 grid max-w-xl grid-cols-2 gap-4">
+      <div className="mx-auto mt-6 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
         {ALUMNOS.map((a, i) => (
           <motion.a
             key={a.id}
@@ -116,7 +116,7 @@ export function Cursos({ alumno }: { alumno: Alumno }) {
         </div>
       </div>
       <Rejilla
-        tarjetas={CURSOS.filter((c) => c.alumno === alumno.id).map((c) => ({
+        tarjetas={CURSOS.filter((c) => c.alumno === cursosDe(alumno)).map((c) => ({
           href: c.materias.length ? `#/${c.id}` : undefined,
           icono: c.icono,
           titulo: c.nombre,
