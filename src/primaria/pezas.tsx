@@ -388,6 +388,71 @@ export function Une({ pares, acabar }: { pares: { palabra: string; significado: 
   )
 }
 
+/** Verdadeiro ou falso: unha frase cada vez. Se falla, explícalle por que. */
+export function VerdadeiroFalso({ frases, acabar }: { frases: { texto: string; certa: boolean; explica: string }[]; acabar: () => void }) {
+  const orde = useMemo(() => barallar(frases), [frases])
+  const [k, setK] = useState(0)
+  const [resposta, setResposta] = useState<boolean | null>(null)
+  const [acertos, setAcertos] = useState(0)
+  if (k >= orde.length)
+    return (
+      <Burbulla ton="ben">
+        {acertos === orde.length ? 'Perfecto! Acertaches todas.' : `Moi ben! Acertaches ${acertos} de ${orde.length}. Podes xogar outra vez.`}
+      </Burbulla>
+    )
+  const f = orde[k]
+  const ben = resposta === f.certa
+  function responder(r: boolean) {
+    if (resposta !== null) return
+    setResposta(r)
+    if (r === f.certa) setAcertos(acertos + 1)
+  }
+  function seguinte() {
+    setResposta(null)
+    setK(k + 1)
+    if (k + 1 === orde.length) acabar()
+  }
+  return (
+    <div className="space-y-4">
+      <p className="text-center text-sm font-semibold text-slate-500">
+        {k + 1} de {orde.length}
+      </p>
+      <p className="rounded-2xl border-2 border-violet-200 bg-white p-5 text-center text-2xl leading-snug font-bold text-slate-800">{f.texto}</p>
+      <div className="grid grid-cols-2 gap-3">
+        {[true, false].map((v) => (
+          <button
+            key={String(v)}
+            disabled={resposta !== null}
+            onClick={() => responder(v)}
+            className={`min-h-16 cursor-pointer rounded-2xl border-2 text-xl font-black transition disabled:cursor-default ${
+              resposta === null
+                ? v
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                  : 'border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100'
+                : v === f.certa
+                  ? 'border-emerald-500 bg-emerald-500 text-white'
+                  : 'border-slate-200 bg-white text-slate-400'
+            }`}
+          >
+            {v ? '✓ Verdadeiro' : '✗ Falso'}
+          </button>
+        ))}
+      </div>
+      {resposta !== null && (
+        <>
+          <Burbulla ton={ben ? 'ben' : 'mal'}>
+            {ben ? 'Ben! ' : 'Non. '}
+            <span className="font-medium">{f.explica}</span>
+          </Burbulla>
+          <button className="btn btn-primario min-h-14 w-full border-violet-600 bg-violet-600 text-xl hover:bg-violet-700" onClick={seguinte}>
+            {k + 1 === orde.length ? 'Ver como me foi' : 'Seguinte →'}
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+
 /** Unha pregunta da proba: escoller unha resposta ou tocar no debuxo. */
 export type Pregunta =
   | { tipo: 'elixe'; texto: string; correcta: string; outras: string[]; explica: string; visual?: ReactNode }

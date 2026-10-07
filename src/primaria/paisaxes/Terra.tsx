@@ -1,6 +1,7 @@
 // Parada 1 de «Descubrimos as paisaxes»: como é a Terra e que é a paisaxe (páxinas 14 e 15 do libro).
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { Busca, Clasifica, ParadaPrimaria, Proba, Tarxetas, Une, type Debuxo, type Pregunta, type Tarxeta, type Xogo, Xogos } from '../pezas'
+import { elixe, toca } from './preguntas'
 import { CONTINENTES, COR_TIPO, Globo, Mapamundi, NOMES_MAPA, NOMES_PAISAXE, OCEANOS, Paisaxe } from './debuxos'
 
 const Mapa: Debuxo = (p) => <Mapamundi {...p} />
@@ -297,8 +298,7 @@ const XOGOS: Xogo[] = [
   },
 ]
 
-const elixe = (texto: string, correcta: string, outras: string[], explica: string, visual?: ReactNode): Pregunta => ({ tipo: 'elixe', texto, correcta, outras, explica, visual })
-const tocaMapa = (texto: string, correcta: string, explica: string): Pregunta => ({ tipo: 'toca', texto, correcta, Debuxo: Mapa, nomes: NOMES_MAPA, explica })
+const tocaMapa = (texto: string, correcta: string, explica: string) => toca(texto, Mapa, NOMES_MAPA, correcta, explica)
 
 const PREGUNTAS: Pregunta[] = [
   elixe('De que cor se ve dende o espazo a auga dos océanos e dos mares?', 'Azul', ['Verde', 'Marrón'], 'O azul é a auga; o marrón, as rochas; e o verde, a vexetación.', <Globo />),

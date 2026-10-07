@@ -3,15 +3,19 @@ import { motion } from 'motion/react'
 import type { Progreso } from '../../lib/progreso'
 import { estrellas } from '../../componentes/Prueba'
 import { PREGUNTAS_PROBA } from '../pezas'
+import type { ComponentType } from 'react'
+import Chaira from './Chaira'
+import Costa from './Costa'
+import Montana from './Montana'
 import Terra from './Terra'
 
 export const RUTA_PAISAXES = '#/3primaria/conecemento-medio/paisaxes'
 
 const PARADAS = [
   { id: 'terra', titulo: 'Como é a Terra?', resumen: 'Océanos, continentes e que é a paisaxe.', paxinas: '14 e 15', feita: true },
-  { id: 'montana', titulo: 'Paisaxes de montaña', resumen: 'Montañas, serras e vales. Como é a vida na montaña.', paxinas: '16 e 17', feita: false },
-  { id: 'chaira', titulo: 'Paisaxes de chaira', resumen: 'Mesetas, depresións e outeiros. Como é a vida na chaira.', paxinas: '18 e 19', feita: false },
-  { id: 'costa', titulo: 'Paisaxes de costa', resumen: 'Cabos, golfos, illas e penínsulas. Como é a vida na costa.', paxinas: '20 e 21', feita: false },
+  { id: 'montana', titulo: 'Paisaxes de montaña', resumen: 'Montañas, serras e vales. Como é a vida na montaña.', paxinas: '16 e 17', feita: true },
+  { id: 'chaira', titulo: 'Paisaxes de chaira', resumen: 'Mesetas, depresións e outeiros. Como é a vida na chaira.', paxinas: '18 e 19', feita: true },
+  { id: 'costa', titulo: 'Paisaxes de costa', resumen: 'Cabos, golfos, illas e penínsulas. Como é a vida na costa.', paxinas: '20 e 21', feita: true },
 ]
 
 const clave = (parada: string) => `paisaxes/${parada}`
@@ -74,11 +78,14 @@ function Mapa({ progreso }: { progreso: Progreso }) {
   )
 }
 
+const COMPOÑENTES: Record<string, ComponentType<{ ruta: string; modo?: string }>> = { terra: Terra, montana: Montana, chaira: Chaira, costa: Costa }
+
 export default function Paisaxes({ parada, modo, progreso }: { parada?: string; modo?: string; progreso: Progreso }) {
-  if (parada === 'terra')
+  const Parada = parada ? COMPOÑENTES[parada] : undefined
+  if (Parada)
     return (
       <div className="tablero">
-        <Terra ruta={`${RUTA_PAISAXES}/terra`} modo={modo} />
+        <Parada key={parada} ruta={`${RUTA_PAISAXES}/${parada}`} modo={modo} />
       </div>
     )
   return <Mapa progreso={progreso} />

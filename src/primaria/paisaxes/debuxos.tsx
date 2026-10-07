@@ -4,11 +4,11 @@ import { useId, type MouseEvent, type ReactNode } from 'react'
 import { ALTO_MAPA, ANCHO_MAPA, CONTINENTES_SVG, GLOBO_SVG, lonLat, punto } from '../mundo'
 import type { Marca } from '../pezas'
 
-const VERDE = '#059669'
-const VERMELLO = '#e11d48'
+export const VERDE = '#059669'
+export const VERMELLO = '#e11d48'
 
 /** Etiqueta redondeada sobre un dibujo; verde si es un acierto, roja si es un fallo. */
-function Pilula({ x, y, texto, marca, cor = '#ffffff', tam = 15, cursiva }: { x: number; y: number; texto: string; marca?: Marca; cor?: string; tam?: number; cursiva?: boolean }) {
+export function Pilula({ x, y, texto, marca, cor = '#ffffff', tam = 15, cursiva }: { x: number; y: number; texto: string; marca?: Marca; cor?: string; tam?: number; cursiva?: boolean }) {
   const ancho = texto.length * tam * 0.58 + 18
   const fondo = marca === 'ben' ? VERDE : marca === 'mal' ? VERMELLO : cor
   const tinta = marca ? '#fff' : '#1e293b'
@@ -18,6 +18,21 @@ function Pilula({ x, y, texto, marca, cor = '#ffffff', tam = 15, cursiva }: { x:
       <text x={x} y={y + tam * 0.1} textAnchor="middle" dominantBaseline="middle" fontSize={tam} fontWeight={800} fontStyle={cursiva ? 'italic' : undefined} fill={tinta}>
         {texto}
       </text>
+    </g>
+  )
+}
+
+/** Envuelve un elemento de un dibujo para que se pueda tocar y resaltar como acierto o fallo. */
+export function tocable(onToca: ((id: string) => void) | undefined, marcas: Record<string, Marca>) {
+  return (id: string, dentro: ReactNode) => (
+    <g
+      key={id}
+      data-id={id}
+      onClick={onToca ? (e) => (e.stopPropagation(), onToca(id)) : undefined}
+      className={onToca ? 'cursor-pointer' : ''}
+      style={marcas[id] ? { filter: `drop-shadow(0 0 5px ${marcas[id] === 'ben' ? VERDE : VERMELLO}) drop-shadow(0 0 3px ${marcas[id] === 'ben' ? VERDE : VERMELLO})` } : undefined}
+    >
+      {dentro}
     </g>
   )
 }
@@ -249,7 +264,7 @@ const ETIQUETA_PAISAXE: Record<string, [number, number, string]> = {
   estrada: [330, 236, 'estrada'],
 }
 
-function Arbore({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
+export function Arbore({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${s})`}>
       <rect x="-2.5" y="0" width="5" height="12" fill="#92400e" />
@@ -259,7 +274,7 @@ function Arbore({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   )
 }
 
-function Casa({ x, y, cor }: { x: number; y: number; cor: string }) {
+export function Casa({ x, y, cor }: { x: number; y: number; cor: string }) {
   return (
     <g transform={`translate(${x} ${y})`}>
       <rect x="-14" y="-16" width="28" height="22" fill="#fef3c7" stroke="#78350f" strokeWidth="1" />
@@ -271,7 +286,7 @@ function Casa({ x, y, cor }: { x: number; y: number; cor: string }) {
   )
 }
 
-function Vaca({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
+export function Vaca({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${s})`}>
       <ellipse cx="0" cy="0" rx="14" ry="8" fill="#b45309" />
@@ -288,18 +303,7 @@ function Vaca({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
  * color de su tipo; `parque` quita lo construido y pone el cartel de un parque natural.
  */
 export function Paisaxe({ onToca, marcas = {}, etiquetas = false, parque = false, tipos }: { onToca?: (id: string) => void; marcas?: Record<string, Marca>; etiquetas?: boolean; parque?: boolean; tipos?: string[] }) {
-  // Cada elemento es un grupo que se puede tocar.
-  const el = (id: string, dentro: ReactNode) => (
-    <g
-      key={id}
-      data-id={id}
-      onClick={onToca ? (e) => (e.stopPropagation(), onToca(id)) : undefined}
-      className={onToca ? 'cursor-pointer' : ''}
-      style={marcas[id] ? { filter: `drop-shadow(0 0 5px ${marcas[id] === 'ben' ? VERDE : VERMELLO})` } : undefined}
-    >
-      {dentro}
-    </g>
-  )
+  const el = tocable(onToca, marcas)
   const construidos = !parque
   const ceo = useId()
   const conEtiqueta = Object.keys(ETIQUETA_PAISAXE).filter((id) => (construidos || TIPO_PAISAXE[id] !== 'persoas') && ((etiquetas && (!tipos || tipos.includes(TIPO_PAISAXE[id]))) || marcas[id]))
