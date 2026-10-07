@@ -13,6 +13,7 @@ import Enteros from './paradas/Enteros'
 import Sumas from './paradas/Sumas'
 import Productos from './paradas/Productos'
 import Combinadas from './paradas/Combinadas'
+import Paisaxes, { avancePaisaxes } from './primaria/paisaxes/Unidade'
 
 // Paradas del Tema 1 de Matemáticas de 2º, la única lección construida por ahora.
 const PARADAS: Record<string, ComponentType<PropsParada>> = {
@@ -50,7 +51,9 @@ export default function App() {
   const alumno = ALUMNOS.find((a) => a.id === (curso?.alumno ?? idCurso))
   const materia = curso?.materias.find((m) => m.id === idMateria && m.lecciones.length)
   const leccion = materia?.lecciones.find((l) => l.id === idLeccion)
-  const Parada = leccion ? PARADAS[idParada] : undefined
+  // Las lecciones de Primaria llevan su propio mapa y sus paradas; la de Mateo usa las de abajo.
+  const primaria = leccion?.id === 'paisaxes'
+  const Parada = leccion && !primaria ? PARADAS[idParada] : undefined
 
   const migas = [
     alumno && { texto: alumno.nombre, href: `#/${alumno.id}` },
@@ -59,7 +62,8 @@ export default function App() {
     curso && materia && leccion && { texto: leccion.titulo.split(' · ')[0], href: `#/${curso.id}/${materia.id}/${leccion.id}` },
   ].filter((m) => !!m)
 
-  function avance(): string {
+  function avance(idLeccion: string): string {
+    if (idLeccion === 'paisaxes') return avancePaisaxes(progreso)
     const ids = Object.values(EJERCICIOS).flat()
     const conseguidas = Object.keys(PARADAS).reduce((t, p) => t + estrellas(progreso.pruebas[p], PREGUNTAS_PRUEBA), 0)
     return `★ ${conseguidas} de 24 · ${ids.filter((id) => progreso.hechos[id]).length} de ${ids.length} ejercicios de clase`
@@ -89,7 +93,9 @@ export default function App() {
       )}
 
       <main>
-        {Parada ? (
+        {primaria ? (
+          <Paisaxes parada={idParada} modo={modo} progreso={progreso} />
+        ) : Parada ? (
           <div className="tablero">
             <Parada key={idParada} modo={modo} progreso={progreso} apuntar={apuntar} />
           </div>

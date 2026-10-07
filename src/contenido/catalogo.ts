@@ -54,7 +54,12 @@ export const CURSOS: Curso[] = [
       sinLecciones('matematicas', 'Matemáticas', '🔢'),
       sinLecciones('lingua-galega', 'Lingua Galega e Literatura', '📜'),
       sinLecciones('lengua-castellana', 'Lengua Castellana y Literatura', '✒️'),
-      sinLecciones('conecemento-medio', 'Coñecemento do Medio Natural, Social e Cultural', '🌿'),
+      {
+        id: 'conecemento-medio',
+        nombre: 'Coñecemento do Medio Natural, Social e Cultural',
+        icono: '🌿',
+        lecciones: [{ id: 'paisaxes', titulo: 'Unidade 1 · Descubrimos as paisaxes', resumen: 'A Terra e as paisaxes de montaña, de chaira e de costa.' }],
+      },
       sinLecciones('ingles', 'Inglés', '🛰️'),
       sinLecciones('educacion-artistica', 'Educación Artística', '🎨'),
       sinLecciones('educacion-fisica', 'Educación Física', '☄️'),
