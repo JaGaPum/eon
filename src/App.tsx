@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentType } from 'react'
-import { ContextoAvance, useProgreso } from './lib/progreso'
+import { ContextoAvance, useProgreso, type Progreso } from './lib/progreso'
 import type { PropsParada } from './componentes/Parada'
 import { Musica } from './componentes/Musica'
 import { Examen, estrellas, PREGUNTAS_PRUEBA } from './componentes/Prueba'
@@ -14,6 +14,7 @@ import Sumas from './paradas/Sumas'
 import Productos from './paradas/Productos'
 import Combinadas from './paradas/Combinadas'
 import Paisaxes, { avancePaisaxes } from './primaria/paisaxes/Unidade'
+import Unite1, { avanceUnite1 } from './idiomas/frances/Unite'
 
 // Paradas del Tema 1 de Matemáticas de 2º, la única lección construida por ahora.
 const PARADAS: Record<string, ComponentType<PropsParada>> = {
@@ -25,6 +26,11 @@ const PARADAS: Record<string, ComponentType<PropsParada>> = {
   sumas: Sumas,
   productos: Productos,
   combinadas: Combinadas,
+}
+
+const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; modo?: string; progreso: Progreso }>; avance: (p: Progreso) => string }> = {
+  paisaxes: { Compoñente: Paisaxes, avance: avancePaisaxes },
+  unite1: { Compoñente: Unite1, avance: avanceUnite1 },
 }
 
 // Navegación por la parte de la dirección tras «#»: #/2eso/matematicas/tema1/mcd/probar
@@ -51,9 +57,10 @@ export default function App() {
   const alumno = ALUMNOS.find((a) => a.id === (curso?.alumno ?? idCurso))
   const materia = curso?.materias.find((m) => m.id === idMateria && m.lecciones.length)
   const leccion = materia?.lecciones.find((l) => l.id === idLeccion)
-  // Las lecciones de Primaria llevan su propio mapa y sus paradas; la de Mateo usa las de abajo.
-  const primaria = leccion?.id === 'paisaxes'
-  const Parada = leccion && !primaria ? PARADAS[idParada] : undefined
+  // Las unidades con juegos (las de Olivia y la de Francés) llevan su propio mapa y sus paradas; el Tema 1 de
+  // Matemáticas usa las de abajo.
+  const Unidade = leccion ? UNIDADES[leccion.id] : undefined
+  const Parada = leccion && !Unidade ? PARADAS[idParada] : undefined
 
   const migas = [
     alumno && { texto: alumno.nombre, href: `#/${alumno.id}` },
@@ -63,7 +70,7 @@ export default function App() {
   ].filter((m) => !!m)
 
   function avance(idLeccion: string): string {
-    if (idLeccion === 'paisaxes') return avancePaisaxes(progreso)
+    if (UNIDADES[idLeccion]) return UNIDADES[idLeccion].avance(progreso)
     const ids = Object.values(EJERCICIOS).flat()
     const conseguidas = Object.keys(PARADAS).reduce((t, p) => t + estrellas(progreso.pruebas[p], PREGUNTAS_PRUEBA), 0)
     return `★ ${conseguidas} de 24 · ${ids.filter((id) => progreso.hechos[id]).length} de ${ids.length} ejercicios de clase`
@@ -93,8 +100,8 @@ export default function App() {
       )}
 
       <main>
-        {primaria ? (
-          <Paisaxes parada={idParada} modo={modo} progreso={progreso} />
+        {Unidade ? (
+          <Unidade.Compoñente parada={idParada} modo={modo} progreso={progreso} />
         ) : Parada ? (
           <div className="tablero">
             <Parada key={idParada} modo={modo} progreso={progreso} apuntar={apuntar} />

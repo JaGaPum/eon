@@ -1,6 +1,7 @@
-// Piezas de las unidades de Primaria. Todo lo que lee la alumna va en galego, como su libro: frases cortas,
-// botones grandes y una guía, Estrela, que anima y corrige. Se responde tocando, nunca escribiendo.
-import { useMemo, useState, type ReactNode } from 'react'
+// Piezas de las unidades por paradas con juegos: Descubre, Xoga y Proba. Las usan las unidades de Olivia (en galego,
+// con Estrela de guía) y las de idiomas de Mateo (en castellano, con un cohete de guía). Los textos de la interfaz
+// salen de TEXTOS según el idioma del contexto; el contenido lo pone cada unidad.
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useAvance } from '../lib/progreso'
 import { estrellas } from '../componentes/Prueba'
@@ -14,7 +15,200 @@ export function barallar<T>(xs: readonly T[]): T[] {
   return a
 }
 
-/** Estrela, a unicornia astronauta que guía as unidades de Primaria. */
+// ——— Idioma de la interfaz ———
+
+const TEXTOS = {
+  gl: {
+    modos: { descubre: 'Descubre', xoga: 'Xoga', proba: '★ Proba' },
+    mapa: '← Mapa da unidade',
+    atras: '← Atrás',
+    seguinte: 'Seguinte →',
+    aXogar: 'A xogar! →',
+    tarxeta: 'Tarxeta',
+    outrosXogos: '← Outros xogos',
+    deNovo: '↻ Comezar de novo',
+    xogasteTodo: 'Xogaches a todo! Agora podes facer a proba e gañar estrelas.',
+    escolleXogo: 'Escolle un xogo. Podes xogar as veces que queiras.',
+    irProba: 'Ir á proba ★',
+    si: (n: string) => `Si! Iso é ${n}.`,
+    iso: (n: string, busca: string) => `Iso é ${n}. Busca ${busca}.`,
+    aiNon: (busca: string) => `Aí non. Busca ${busca}.`,
+    toca: 'Toca',
+    escoitaToca: 'Escoita e toca o que oes.',
+    atopado: (fallos: number) => (fallos === 0 ? 'Perfecto! Atopáchelo todo á primeira.' : `Moi ben! Atopáchelo todo. Equivocácheste ${fallos} ${fallos === 1 ? 'vez' : 'veces'}.`),
+    primeiroPalabra: 'Primeiro toca unha palabra de arriba.',
+    benEn: (t: string, c: string) => `Ben! ${t}: ${c}.`,
+    nonVai: (t: string, c: string) => `${t} non vai en «${c}». Pensa outra vez.`,
+    clasificado: 'Moi ben! Clasificaches todo.',
+    clasificaAxuda: 'Toca unha palabra e despois a caixa onde vai.',
+    primeiroEsquerda: 'Primeiro toca unha palabra da esquerda.',
+    ben: 'Ben! ',
+    non: 'Non. ',
+    nonE: (w: string) => `Iso non é «${w}». Le outra vez.`,
+    unido: 'Moi ben! Uniches todas.',
+    uneAxuda: 'Toca unha palabra e despois o que significa.',
+    verdadeiro: '✓ Verdadeiro',
+    falso: '✗ Falso',
+    vfFin: (a: number, n: number) => (a === n ? 'Perfecto! Acertaches todas.' : `Moi ben! Acertaches ${a} de ${n}. Podes xogar outra vez.`),
+    comoMeFoi: 'Ver como me foi',
+    probaIntro: (n: number) => `Na proba hai ${n} preguntas e só tes unha oportunidade en cada unha. Se acertas todas, gañas tres estrelas!`,
+    mellor: (m: number, n: number) => `A túa mellor marca: ${m} de ${n}`,
+    comezarProba: 'Comezar a proba',
+    benDe: (a: number, n: number) => `${a} de ${n} ben`,
+    probaFin: (e: number) => (e === 3 ? 'Perfecto! Tres estrelas!' : e > 0 ? 'Moi ben! Repasa o que fallaches e volve intentalo para gañar máis estrelas.' : 'Aínda non. Volve a Descubre e a Xoga, e logo téntao outra vez.'),
+    practicaFin: (a: number, n: number) => (a === n ? 'Perfecto! Todas ben.' : `Acertaches ${a} de ${n}. Xoga outra vez para practicar máis.`),
+    outraProba: 'Facer outra proba',
+    exameIntro: (n: number) => `No exame hai ${n} preguntas de todas as paradas. Ao final tes a nota sobre 10.`,
+    nota: (x: string) => `Nota: ${x}`,
+    mellorNota: (x: string) => `A túa mellor nota: ${x}`,
+    comezarExame: 'Comezar o exame',
+    exameFin: (x: number) => (x >= 9 ? 'Excelente! Estás preparado.' : x >= 5 ? 'Aprobado. Repasa o que fallaches e volve facelo.' : 'Aínda non. Repasa as paradas e téntao outra vez.'),
+    outroExame: 'Facer outro exame',
+    outraVez: 'Xogar outra vez',
+    pregunta: (k: number, n: number) => `Pregunta ${k} de ${n}`,
+    tocaches: (n?: string) => `Non: tocaches ${n ?? 'outro sitio'}. `,
+    verResultado: 'Ver o resultado',
+    seguintePregunta: 'Seguinte pregunta →',
+    comprobar: 'Comprobar',
+    escribeAqui: 'Escribe aquí',
+    acentos: (b: string) => `Case! Coidado cos acentos: escríbese «${b}».`,
+    solucion: (b: string) => `Escríbese «${b}».`,
+    ordenaAxuda: 'Toca as palabras na orde correcta.',
+    ordenado: 'Moi ben! Ordenaches todas.',
+    borrar: '⌫ Borrar',
+    oir: 'Escoitar',
+    estrelas: (n: number) => `${n} de 3 estrelas`,
+  },
+  es: {
+    modos: { descubre: 'Aprende', xoga: 'Practica', proba: '★ Prueba' },
+    mapa: '← Mapa de la unidad',
+    atras: '← Atrás',
+    seguinte: 'Siguiente →',
+    aXogar: '¡A practicar! →',
+    tarxeta: 'Tarjeta',
+    outrosXogos: '← Otros juegos',
+    deNovo: '↻ Empezar de nuevo',
+    xogasteTodo: '¡Has hecho todos los juegos! Ya puedes hacer la prueba y ganar estrellas.',
+    escolleXogo: 'Elige un juego. Puedes repetirlos las veces que quieras.',
+    irProba: 'Ir a la prueba ★',
+    si: (n: string) => `¡Sí! Es ${n}.`,
+    iso: (n: string, busca: string) => `Eso es ${n}. Busca ${busca}.`,
+    aiNon: (busca: string) => `Ahí no. Busca ${busca}.`,
+    toca: 'Toca',
+    escoitaToca: 'Escucha y toca lo que oyes.',
+    atopado: (fallos: number) => (fallos === 0 ? '¡Perfecto! Todo a la primera.' : `¡Muy bien! Lo has encontrado todo. Fallos: ${fallos}.`),
+    primeiroPalabra: 'Primero toca una palabra de arriba.',
+    benEn: (t: string, c: string) => `¡Bien! ${t}: ${c}.`,
+    nonVai: (t: string, c: string) => `${t} no va en «${c}». Piénsalo otra vez.`,
+    clasificado: '¡Muy bien! Lo has clasificado todo.',
+    clasificaAxuda: 'Toca una palabra y después la caja donde va.',
+    primeiroEsquerda: 'Primero toca una palabra de la izquierda.',
+    ben: '¡Bien! ',
+    non: 'No. ',
+    nonE: (w: string) => `Eso no es «${w}». Léelo otra vez.`,
+    unido: '¡Muy bien! Las has unido todas.',
+    uneAxuda: 'Toca una palabra y después lo que significa.',
+    verdadeiro: '✓ Verdadero',
+    falso: '✗ Falso',
+    vfFin: (a: number, n: number) => (a === n ? '¡Perfecto! Todas bien.' : `¡Muy bien! Has acertado ${a} de ${n}. Puedes jugar otra vez.`),
+    comoMeFoi: 'Ver cómo me ha ido',
+    probaIntro: (n: number) => `En la prueba hay ${n} preguntas y solo tienes un intento en cada una. Si las aciertas todas, ganas tres estrellas.`,
+    mellor: (m: number, n: number) => `Tu mejor marca: ${m} de ${n}`,
+    comezarProba: 'Empezar la prueba',
+    benDe: (a: number, n: number) => `${a} de ${n} bien`,
+    probaFin: (e: number) => (e === 3 ? '¡Perfecto! ¡Tres estrellas!' : e > 0 ? '¡Muy bien! Repasa lo que has fallado y vuelve a intentarlo para ganar más estrellas.' : 'Todavía no. Vuelve a Aprende y a Practica, y luego inténtalo otra vez.'),
+    practicaFin: (a: number, n: number) => (a === n ? '¡Perfecto! Todas bien.' : `Has acertado ${a} de ${n}. Juega otra vez para practicar más.`),
+    outraProba: 'Hacer otra prueba',
+    exameIntro: (n: number) => `En el examen hay ${n} preguntas de todas las paradas. Al final tienes la nota sobre 10.`,
+    nota: (x: string) => `Nota: ${x}`,
+    mellorNota: (x: string) => `Tu mejor nota: ${x}`,
+    comezarExame: 'Empezar el examen',
+    exameFin: (x: number) => (x >= 9 ? '¡Sobresaliente! Estás preparado.' : x >= 5 ? 'Aprobado. Repasa lo que has fallado y vuelve a hacerlo.' : 'Todavía no. Repasa las paradas y vuelve a intentarlo.'),
+    outroExame: 'Hacer otro examen',
+    outraVez: 'Jugar otra vez',
+    pregunta: (k: number, n: number) => `Pregunta ${k} de ${n}`,
+    tocaches: (n?: string) => `No: has tocado ${n ?? 'otro sitio'}. `,
+    verResultado: 'Ver el resultado',
+    seguintePregunta: 'Siguiente pregunta →',
+    comprobar: 'Comprobar',
+    escribeAqui: 'Escribe aquí',
+    acentos: (b: string) => `¡Casi! Cuidado con los acentos: se escribe «${b}».`,
+    solucion: (b: string) => `Se escribe «${b}».`,
+    ordenaAxuda: 'Toca las palabras en el orden correcto.',
+    ordenado: '¡Muy bien! Las has ordenado todas.',
+    borrar: '⌫ Borrar',
+    oir: 'Escuchar',
+    estrelas: (n: number) => `${n} de 3 estrellas`,
+  },
+}
+
+type Idioma = keyof typeof TEXTOS
+const ContextoIdioma = createContext<{ idioma: Idioma; falar?: string }>({ idioma: 'gl' })
+
+/**
+ * Idioma de la interfaz y, para las unidades de idiomas, la lengua en que se leen en voz alta las palabras
+ * (por ejemplo «fr-FR»).
+ */
+export function IdiomaUnidade({ idioma, falar, children }: { idioma: Idioma; falar?: string; children: ReactNode }) {
+  return <ContextoIdioma.Provider value={{ idioma, falar }}>{children}</ContextoIdioma.Provider>
+}
+
+const useT = () => TEXTOS[useContext(ContextoIdioma).idioma]
+
+// ——— Voz ———
+
+/** Lee un texto en voz alta con la voz del dispositivo para esa lengua. Si no hay voz, no hace nada. */
+export function fala(texto: string, lingua = 'fr-FR') {
+  const s = typeof window !== 'undefined' ? window.speechSynthesis : undefined
+  if (!s) return
+  s.cancel()
+  const u = new SpeechSynthesisUtterance(texto)
+  u.lang = lingua
+  const voz = s.getVoices().find((v) => v.lang.replace('_', '-').startsWith(lingua.slice(0, 2)))
+  if (voz) u.voice = voz
+  u.rate = 0.85
+  s.speak(u)
+}
+
+/** La lengua de lectura de la unidad, o nada si la unidad no lee en voz alta. */
+export const useFalar = () => useContext(ContextoIdioma).falar
+
+/** Botón 🔊 que lee el texto en la lengua de la unidad. */
+export function Son({ texto, grande }: { texto: string; grande?: boolean }) {
+  const lingua = useFalar()
+  const t = useT()
+  if (!lingua) return null
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation()
+        fala(texto, lingua)
+      }}
+      className={`inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full bg-violet-100 align-middle text-violet-700 hover:bg-violet-200 ${grande ? 'h-12 w-12 text-2xl' : 'mx-1 h-8 w-8 text-base'}`}
+      aria-label={`${t.oir}: ${texto}`}
+      title={t.oir}
+    >
+      🔊
+    </button>
+  )
+}
+
+/** Una palabra o frase en la lengua que se estudia, con su botón para oírla. */
+export function Fr({ children }: { children: string }) {
+  return (
+    <span className="whitespace-nowrap">
+      <b className="text-violet-800" lang="fr">
+        {children}
+      </b>
+      <Son texto={children} />
+    </span>
+  )
+}
+
+// ——— Guías ———
+
+/** Estrela, a unicornia astronauta que guía as unidades de Olivia. */
 export function Estrela({ tam = 56 }: { tam?: number }) {
   return (
     <svg viewBox="0 0 64 64" width={tam} height={tam} aria-hidden="true" className="shrink-0">
@@ -37,12 +231,31 @@ export function Estrela({ tam = 56 }: { tam?: number }) {
   )
 }
 
-/** Lo que dice Estrela, en un bocadillo. */
+/** Un cohete, guía de las unidades de Mateo. */
+export function Cohete({ tam = 56 }: { tam?: number }) {
+  return (
+    <svg viewBox="0 0 64 64" width={tam} height={tam} aria-hidden="true" className="shrink-0">
+      <circle cx="32" cy="32" r="31" fill="#e0e7ff" stroke="#a5b4fc" strokeWidth="2" />
+      <g transform="rotate(35 32 32)">
+        <path d="M32 8 C40 16 42 28 40 42 L24 42 C22 28 24 16 32 8 Z" fill="#f8fafc" stroke="#6366f1" strokeWidth="1.8" strokeLinejoin="round" />
+        <circle cx="32" cy="24" r="5" fill="#38bdf8" stroke="#6366f1" strokeWidth="1.5" />
+        <path d="M24 34 L16 46 L25 42 Z M40 34 L48 46 L39 42 Z" fill="#f43f5e" stroke="#be123c" strokeWidth="1.2" strokeLinejoin="round" />
+        <path d="M27 42 L32 56 L37 42 Z" fill="#fbbf24" />
+        <path d="M29.5 42 L32 50 L34.5 42 Z" fill="#f97316" />
+      </g>
+      <circle cx="12" cy="14" r="1.5" fill="#6366f1" />
+      <circle cx="52" cy="50" r="1.5" fill="#6366f1" />
+    </svg>
+  )
+}
+
+/** Lo que dice la guía, en un bocadillo. */
 export function Burbulla({ children, ton = 'normal' }: { children: ReactNode; ton?: 'normal' | 'ben' | 'mal' }) {
+  const { idioma } = useContext(ContextoIdioma)
   const cor = ton === 'ben' ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : ton === 'mal' ? 'border-amber-300 bg-amber-50 text-amber-900' : 'border-violet-200 bg-violet-50 text-violet-950'
   return (
     <div className="flex items-start gap-2">
-      <Estrela />
+      {idioma === 'gl' ? <Estrela /> : <Cohete />}
       <motion.div
         key={String(children)}
         initial={{ opacity: 0, scale: 0.96 }}
@@ -56,35 +269,34 @@ export function Burbulla({ children, ton = 'normal' }: { children: ReactNode; to
   )
 }
 
-export const MODOS_PRIMARIA = [
-  ['descubre', 'Descubre'],
-  ['xoga', 'Xoga'],
-  ['proba', '★ Proba'],
-] as const
+// ——— Armazón ———
 
-/** Armazón de una parada de Primaria: volver al mapa, título y los tres modos, que siguen montados al cambiar. */
-export function ParadaPrimaria({ ruta, titulo, modo, paneis }: { ruta: string; titulo: string; modo?: string; paneis: Record<(typeof MODOS_PRIMARIA)[number][0], ReactNode> }) {
-  const activo = MODOS_PRIMARIA.find(([m]) => m === modo)?.[0] ?? 'descubre'
+export const MODOS_PRIMARIA = ['descubre', 'xoga', 'proba'] as const
+
+/** Armazón de una parada: volver al mapa, título y los tres modos, que siguen montados al cambiar. */
+export function ParadaPrimaria({ ruta, titulo, modo, paneis }: { ruta: string; titulo: ReactNode; modo?: string; paneis: Record<(typeof MODOS_PRIMARIA)[number], ReactNode> }) {
+  const t = useT()
+  const activo = MODOS_PRIMARIA.find((m) => m === modo) ?? 'descubre'
   const mapa = ruta.slice(0, ruta.lastIndexOf('/'))
   return (
     <>
       <a href={mapa} className="text-lg font-semibold text-violet-700">
-        ← Mapa da unidade
+        {t.mapa}
       </a>
       <h1 className="mt-2 text-3xl font-black text-slate-800 sm:text-4xl">{titulo}</h1>
       <nav className="mt-4 grid grid-cols-3 gap-1 rounded-2xl bg-violet-100 p-1">
-        {MODOS_PRIMARIA.map(([m, nome]) => (
+        {MODOS_PRIMARIA.map((m) => (
           <a
             key={m}
             href={`${ruta}/${m}`}
             className={`rounded-xl px-2 py-3 text-center text-base font-bold sm:text-lg ${m === activo ? 'bg-white text-violet-700 shadow-sm' : 'text-violet-900/70'}`}
           >
-            {nome}
+            {t.modos[m]}
           </a>
         ))}
       </nav>
       <div className="mt-5">
-        {MODOS_PRIMARIA.map(([m]) => (
+        {MODOS_PRIMARIA.map((m) => (
           <div key={m} hidden={m !== activo}>
             {paneis[m]}
           </div>
@@ -95,44 +307,45 @@ export function ParadaPrimaria({ ruta, titulo, modo, paneis }: { ruta: string; t
 }
 
 export interface Tarxeta {
-  titulo: string
+  titulo: ReactNode
   texto: ReactNode
-  visual: ReactNode
+  visual?: ReactNode
   /** O debuxo vai debaixo do texto, a todo o ancho (para os mapas). */
   ancho?: boolean
 }
 
 /** Modo Descubre: unha idea por tarxeta, con texto curto e un debuxo grande. */
 export function Tarxetas({ tarxetas, xoga }: { tarxetas: Tarxeta[]; xoga: string }) {
+  const t = useT()
   const [i, setI] = useState(0)
-  const t = tarxetas[i]
+  const x = tarxetas[i]
   return (
     <section>
       <AnimatePresence mode="wait">
         <motion.div key={i} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.18 }}>
-          <h2 className="mb-3 text-2xl font-black text-violet-800">{t.titulo}</h2>
-          <div className={`grid items-start gap-4 ${t.ancho ? '' : 'md:grid-cols-[2fr_3fr]'}`}>
-            <div className="space-y-3 text-xl leading-relaxed">{t.texto}</div>
-            <div className="overflow-hidden rounded-2xl border-2 border-violet-100 bg-white p-2">{t.visual}</div>
+          <h2 className="mb-3 text-2xl font-black text-violet-800">{x.titulo}</h2>
+          <div className={`grid items-start gap-4 ${x.ancho || !x.visual ? '' : 'md:grid-cols-[2fr_3fr]'}`}>
+            <div className="space-y-3 text-xl leading-relaxed">{x.texto}</div>
+            {x.visual && <div className="overflow-hidden rounded-2xl border-2 border-violet-100 bg-white p-2">{x.visual}</div>}
           </div>
         </motion.div>
       </AnimatePresence>
       <div className="mt-5 flex items-center justify-between gap-2">
         <button className="btn min-h-12 text-lg" disabled={i === 0} onClick={() => setI(i - 1)}>
-          ← Atrás
+          {t.atras}
         </button>
-        <span className="flex gap-1.5" aria-label={`${i + 1} de ${tarxetas.length}`}>
+        <span className="flex flex-wrap justify-center gap-1.5" aria-label={`${i + 1} / ${tarxetas.length}`}>
           {tarxetas.map((_, k) => (
-            <button key={k} onClick={() => setI(k)} aria-label={`Tarxeta ${k + 1}`} className={`h-3.5 w-3.5 cursor-pointer rounded-full ${k === i ? 'scale-125 bg-violet-600' : k < i ? 'bg-violet-300' : 'bg-slate-300'}`} />
+            <button key={k} onClick={() => setI(k)} aria-label={`${t.tarxeta} ${k + 1}`} className={`h-3.5 w-3.5 cursor-pointer rounded-full ${k === i ? 'scale-125 bg-violet-600' : k < i ? 'bg-violet-300' : 'bg-slate-300'}`} />
           ))}
         </span>
         {i < tarxetas.length - 1 ? (
           <button className="btn btn-primario min-h-12 border-violet-600 bg-violet-600 text-lg hover:bg-violet-700" onClick={() => setI(i + 1)}>
-            Seguinte →
+            {t.seguinte}
           </button>
         ) : (
           <a className="btn btn-primario min-h-12 border-violet-600 bg-violet-600 text-lg hover:bg-violet-700" href={xoga}>
-            A xogar! →
+            {t.aXogar}
           </a>
         )}
       </div>
@@ -157,34 +370,36 @@ export interface Xogo {
 
 /** Modo Xoga: unha lista de xogos; ao rematar un, vólvese á lista. */
 export function Xogos({ xogos, proba }: { xogos: Xogo[]; proba: string }) {
+  const t = useT()
   const [actual, setActual] = useState<string | null>(null)
   const [partida, setPartida] = useState(0)
   const [feitos, setFeitos] = useState<Record<string, boolean>>({})
   const x = xogos.find((g) => g.id === actual)
-  const acabar = () => x && setFeitos((f) => ({ ...f, [x.id]: true }))
+  // Cada partida se crea una sola vez: si se volviera a crear al redibujar, se barajaría a mitad de juego.
+  const contido = useMemo(() => x?.crear(() => setFeitos((f) => ({ ...f, [x.id]: true }))), [x, partida])
 
   if (x)
     return (
       <section>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <button className="btn min-h-12 text-lg" onClick={() => setActual(null)}>
-            ← Outros xogos
+            {t.outrosXogos}
           </button>
           <button className="btn min-h-12 text-lg" onClick={() => setPartida(partida + 1)}>
-            ↻ Comezar de novo
+            {t.deNovo}
           </button>
         </div>
         <h2 className="mb-3 text-2xl font-black text-violet-800">
           <span aria-hidden="true">{x.icono}</span> {x.titulo}
         </h2>
-        <div key={partida}>{x.crear(acabar)}</div>
+        <div key={partida}>{contido}</div>
       </section>
     )
 
   const todos = xogos.every((g) => feitos[g.id])
   return (
     <section>
-      <Burbulla ton={todos ? 'ben' : 'normal'}>{todos ? 'Xogaches a todo! Agora podes facer a proba e gañar estrelas.' : 'Escolle un xogo. Podes xogar as veces que queiras.'}</Burbulla>
+      <Burbulla ton={todos ? 'ben' : 'normal'}>{todos ? t.xogasteTodo : t.escolleXogo}</Burbulla>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {xogos.map((g) => (
           <button
@@ -207,15 +422,22 @@ export function Xogos({ xogos, proba }: { xogos: Xogo[]; proba: string }) {
       </div>
       {todos && (
         <a className="btn btn-primario mt-4 min-h-12 w-full border-violet-600 bg-violet-600 text-lg hover:bg-violet-700" href={proba}>
-          Ir á proba ★
+          {t.irProba}
         </a>
       )}
     </section>
   )
 }
 
-/** Busca no debuxo: pide os elementos un a un. Se toca outro, dille cal tocou. */
-export function Busca({ Debuxo, nomes, obxectivos, pide = 'Toca', acabar }: { Debuxo: Debuxo; nomes: Record<string, string>; obxectivos: string[]; pide?: string; acabar: () => void }) {
+// ——— Juegos ———
+
+/**
+ * Busca no debuxo: pide os elementos un a un. Se toca outro, dille cal tocou. Con `escoita`, en vez de ler o
+ * que hai que buscar, escóitase (para as unidades de idiomas).
+ */
+export function Busca({ Debuxo, nomes, obxectivos, pide, escoita, acabar }: { Debuxo: Debuxo; nomes: Record<string, string>; obxectivos: string[]; pide?: string; escoita?: boolean; acabar: () => void }) {
+  const t = useT()
+  const lingua = useFalar()
   const orde = useMemo(() => barallar(obxectivos), [obxectivos])
   const [k, setK] = useState(0)
   const [marcas, setMarcas] = useState<Record<string, Marca>>({})
@@ -223,6 +445,11 @@ export function Busca({ Debuxo, nomes, obxectivos, pide = 'Toca', acabar }: { De
   const [fallos, setFallos] = useState(0)
   const obx = orde[k]
   const rematado = k >= orde.length
+  const oculto = escoita && !!lingua
+
+  useEffect(() => {
+    if (oculto && obx) fala(nomes[obx], lingua)
+  }, [oculto, obx, nomes, lingua])
 
   function toca(id: string) {
     if (rematado) return
@@ -230,28 +457,38 @@ export function Busca({ Debuxo, nomes, obxectivos, pide = 'Toca', acabar }: { De
       const novas = { ...marcas, [id]: 'ben' as Marca }
       for (const m in novas) if (novas[m] === 'mal') delete novas[m]
       setMarcas(novas)
-      setAviso({ texto: `Si! Iso é ${nomes[id]}.`, ton: 'ben' })
+      setAviso({ texto: t.si(nomes[id]), ton: 'ben' })
+      if (lingua && !oculto) fala(nomes[id], lingua)
       setK(k + 1)
       if (k + 1 === orde.length) acabar()
     } else {
       setFallos(fallos + 1)
       setMarcas({ ...marcas, [id]: 'mal' })
-      setAviso({ texto: nomes[id] ? `Iso é ${nomes[id]}. Busca ${nomes[obx]}.` : `Aí non. Busca ${nomes[obx]}.`, ton: 'mal' })
+      const busca = oculto ? '🔊' : nomes[obx]
+      setAviso({ texto: nomes[id] ? t.iso(nomes[id], busca) : t.aiNon(busca), ton: 'mal' })
     }
   }
 
   return (
     <div className="space-y-3">
       {rematado ? (
-        <Burbulla ton="ben">{fallos === 0 ? 'Perfecto! Atopáchelo todo á primeira.' : `Moi ben! Atopáchelo todo. Equivocácheste ${fallos} ${fallos === 1 ? 'vez' : 'veces'}.`}</Burbulla>
+        <Burbulla ton="ben">{t.atopado(fallos)}</Burbulla>
       ) : (
         <Burbulla ton={aviso?.ton}>
           {aviso && <span className="block text-base font-medium">{aviso.texto}</span>}
-          {pide} <span className="text-violet-700">{nomes[obx]}</span>.
+          {oculto ? (
+            <span className="flex items-center gap-2">
+              {t.escoitaToca} <Son texto={nomes[obx]} grande />
+            </span>
+          ) : (
+            <>
+              {pide ?? t.toca} <span className="text-violet-700">{nomes[obx]}</span>.{lingua && <Son texto={nomes[obx]} />}
+            </>
+          )}
         </Burbulla>
       )}
       <p className="text-center text-sm font-semibold text-slate-500">
-        {Math.min(k, orde.length)} de {orde.length}
+        {Math.min(k, orde.length)} / {orde.length}
       </p>
       <div className="overflow-hidden rounded-2xl border-2 border-violet-100 bg-white">
         <Debuxo onToca={toca} marcas={marcas} etiquetas={false} />
@@ -269,6 +506,8 @@ export interface Caixa {
 
 /** Clasifica: tócase unha palabra e despois a caixa onde vai. */
 export function Clasifica({ caixas, elementos, acabar }: { caixas: Caixa[]; elementos: { texto: string; caixa: string; pista?: string }[]; acabar: () => void }) {
+  const t = useT()
+  const lingua = useFalar()
   const orde = useMemo(() => barallar(elementos), [elementos])
   const [colocados, setColocados] = useState<Record<string, string>>({})
   const [elixido, setElixido] = useState<string | null>(null)
@@ -278,37 +517,36 @@ export function Clasifica({ caixas, elementos, acabar }: { caixas: Caixa[]; elem
   function poñer(caixa: string) {
     const e = orde.find((x) => x.texto === elixido)
     if (!e) {
-      setAviso({ texto: 'Primeiro toca unha palabra de arriba.', ton: 'mal' })
+      setAviso({ texto: t.primeiroPalabra, ton: 'mal' })
       return
     }
-    const nome = caixas.find((c) => c.id === caixa)?.nome
+    const nome = caixas.find((c) => c.id === caixa)?.nome ?? ''
     if (e.caixa === caixa) {
       setColocados({ ...colocados, [e.texto]: caixa })
       setElixido(null)
-      setAviso({ texto: `Ben! ${e.texto}: ${nome}.`, ton: 'ben' })
+      setAviso({ texto: t.benEn(e.texto, nome), ton: 'ben' })
       if (quedan.length === 1) acabar()
-    } else setAviso({ texto: e.pista ?? `${e.texto} non vai en «${nome}». Pensa outra vez.`, ton: 'mal' })
+    } else setAviso({ texto: e.pista ?? t.nonVai(e.texto, nome), ton: 'mal' })
   }
 
   return (
     <div className="space-y-4">
-      {quedan.length === 0 ? (
-        <Burbulla ton="ben">Moi ben! Clasificaches todo.</Burbulla>
-      ) : (
-        <Burbulla ton={aviso?.ton}>{aviso?.texto ?? 'Toca unha palabra e despois a caixa onde vai.'}</Burbulla>
-      )}
+      {quedan.length === 0 ? <Burbulla ton="ben">{t.clasificado}</Burbulla> : <Burbulla ton={aviso?.ton}>{aviso?.texto ?? t.clasificaAxuda}</Burbulla>}
       <div className="flex min-h-14 flex-wrap justify-center gap-2">
         {quedan.map((e) => (
           <button
             key={e.texto}
-            onClick={() => setElixido(e.texto)}
+            onClick={() => {
+              setElixido(e.texto)
+              if (lingua) fala(e.texto, lingua)
+            }}
             className={`min-h-12 cursor-pointer rounded-full border-2 px-4 text-lg font-bold transition ${elixido === e.texto ? 'scale-105 border-violet-600 bg-violet-600 text-white' : 'border-violet-200 bg-white text-slate-800 hover:bg-violet-50'}`}
           >
             {e.texto}
           </button>
         ))}
       </div>
-      <div className={`grid gap-3 ${caixas.length > 2 ? 'grid-cols-2' : 'grid-cols-2'}`}>
+      <div className={`grid gap-3 ${caixas.length === 3 ? 'sm:grid-cols-3' : 'grid-cols-2'}`}>
         {caixas.map((c) => (
           <button key={c.id} onClick={() => poñer(c.id)} className={`min-h-32 cursor-pointer rounded-2xl border-2 p-3 text-left transition hover:brightness-95 ${c.cor}`}>
             <b className="block text-center text-lg">{c.nome}</b>
@@ -330,6 +568,8 @@ export function Clasifica({ caixas, elementos, acabar }: { caixas: Caixa[]; elem
 
 /** Une: cada palabra co que significa. Tócase a palabra e despois o seu significado. */
 export function Une({ pares, acabar }: { pares: { palabra: string; significado: string }[]; acabar: () => void }) {
+  const t = useT()
+  const lingua = useFalar()
   const palabras = useMemo(() => barallar(pares.map((p) => p.palabra)), [pares])
   const significados = useMemo(() => barallar(pares), [pares])
   const [elixida, setElixida] = useState<string | null>(null)
@@ -340,28 +580,31 @@ export function Une({ pares, acabar }: { pares: { palabra: string; significado: 
   function significado(p: { palabra: string; significado: string }) {
     if (unidas[p.palabra]) return
     if (!elixida) {
-      setAviso({ texto: 'Primeiro toca unha palabra da esquerda.', ton: 'mal' })
+      setAviso({ texto: t.primeiroEsquerda, ton: 'mal' })
       return
     }
     if (p.palabra === elixida) {
       const novas = { ...unidas, [p.palabra]: true }
       setUnidas(novas)
       setElixida(null)
-      setAviso({ texto: `Ben! ${p.palabra}.`, ton: 'ben' })
+      setAviso({ texto: `${t.ben}${p.palabra}.`, ton: 'ben' })
       if (pares.every((x) => novas[x.palabra])) acabar()
-    } else setAviso({ texto: `Iso non é «${elixida}». Le outra vez.`, ton: 'mal' })
+    } else setAviso({ texto: t.nonE(elixida), ton: 'mal' })
   }
 
   return (
     <div className="space-y-4">
-      {rematado ? <Burbulla ton="ben">Moi ben! Uniches todas.</Burbulla> : <Burbulla ton={aviso?.ton}>{aviso?.texto ?? 'Toca unha palabra e despois o que significa.'}</Burbulla>}
+      {rematado ? <Burbulla ton="ben">{t.unido}</Burbulla> : <Burbulla ton={aviso?.ton}>{aviso?.texto ?? t.uneAxuda}</Burbulla>}
       <div className="grid grid-cols-[2fr_5fr] gap-3">
         <div className="flex flex-col gap-2">
           {palabras.map((w) => (
             <button
               key={w}
               disabled={unidas[w]}
-              onClick={() => setElixida(w)}
+              onClick={() => {
+                setElixida(w)
+                if (lingua) fala(w, lingua)
+              }}
               className={`min-h-14 cursor-pointer rounded-xl border-2 px-2 text-lg font-bold transition ${
                 unidas[w] ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : elixida === w ? 'border-violet-600 bg-violet-600 text-white' : 'border-violet-200 bg-white text-slate-800 hover:bg-violet-50'
               }`}
@@ -390,16 +633,12 @@ export function Une({ pares, acabar }: { pares: { palabra: string; significado: 
 
 /** Verdadeiro ou falso: unha frase cada vez. Se falla, explícalle por que. */
 export function VerdadeiroFalso({ frases, acabar }: { frases: { texto: string; certa: boolean; explica: string }[]; acabar: () => void }) {
+  const t = useT()
   const orde = useMemo(() => barallar(frases), [frases])
   const [k, setK] = useState(0)
   const [resposta, setResposta] = useState<boolean | null>(null)
   const [acertos, setAcertos] = useState(0)
-  if (k >= orde.length)
-    return (
-      <Burbulla ton="ben">
-        {acertos === orde.length ? 'Perfecto! Acertaches todas.' : `Moi ben! Acertaches ${acertos} de ${orde.length}. Podes xogar outra vez.`}
-      </Burbulla>
-    )
+  if (k >= orde.length) return <Burbulla ton="ben">{t.vfFin(acertos, orde.length)}</Burbulla>
   const f = orde[k]
   const ben = resposta === f.certa
   function responder(r: boolean) {
@@ -415,7 +654,7 @@ export function VerdadeiroFalso({ frases, acabar }: { frases: { texto: string; c
   return (
     <div className="space-y-4">
       <p className="text-center text-sm font-semibold text-slate-500">
-        {k + 1} de {orde.length}
+        {k + 1} / {orde.length}
       </p>
       <p className="rounded-2xl border-2 border-violet-200 bg-white p-5 text-center text-2xl leading-snug font-bold text-slate-800">{f.texto}</p>
       <div className="grid grid-cols-2 gap-3">
@@ -434,18 +673,18 @@ export function VerdadeiroFalso({ frases, acabar }: { frases: { texto: string; c
                   : 'border-slate-200 bg-white text-slate-400'
             }`}
           >
-            {v ? '✓ Verdadeiro' : '✗ Falso'}
+            {v ? t.verdadeiro : t.falso}
           </button>
         ))}
       </div>
       {resposta !== null && (
         <>
           <Burbulla ton={ben ? 'ben' : 'mal'}>
-            {ben ? 'Ben! ' : 'Non. '}
+            {ben ? t.ben : t.non}
             <span className="font-medium">{f.explica}</span>
           </Burbulla>
           <button className="btn btn-primario min-h-14 w-full border-violet-600 bg-violet-600 text-xl hover:bg-violet-700" onClick={seguinte}>
-            {k + 1 === orde.length ? 'Ver como me foi' : 'Seguinte →'}
+            {k + 1 === orde.length ? t.comoMeFoi : t.seguinte}
           </button>
         </>
       )}
@@ -453,39 +692,231 @@ export function VerdadeiroFalso({ frases, acabar }: { frases: { texto: string; c
   )
 }
 
-/** Unha pregunta da proba: escoller unha resposta ou tocar no debuxo. */
+/** Ordena: as palabras dunha frase, barulladas, hai que tocalas na orde boa. */
+export function Ordena({ frases, acabar }: { frases: { palabras: string[]; traducion?: string }[]; acabar: () => void }) {
+  const t = useT()
+  const lingua = useFalar()
+  const orde = useMemo(() => barallar(frases), [frases])
+  const [k, setK] = useState(0)
+  const [postas, setPostas] = useState<number[]>([])
+  const [aviso, setAviso] = useState<{ texto: string; ton: 'ben' | 'mal' } | null>(null)
+  const f = orde[k]
+  const fichas = useMemo(() => (f ? barallar(f.palabras.map((p, i) => ({ p, i }))) : []), [f])
+  if (!f) return <Burbulla ton="ben">{t.ordenado}</Burbulla>
+  const frase = f.palabras.join(' ').replace(/ \?/g, ' ?')
+  const feita = postas.length === f.palabras.length
+
+  function comprobar() {
+    const escrita = postas.map((i) => f.palabras[i]).join(' ')
+    if (escrita === f.palabras.join(' ')) {
+      if (lingua) fala(frase, lingua)
+      setAviso({ texto: `${t.ben}${frase}`, ton: 'ben' })
+      setPostas([])
+      setK(k + 1)
+      if (k + 1 === orde.length) acabar()
+    } else setAviso({ texto: `${t.non}${t.ordenaAxuda}`, ton: 'mal' })
+  }
+
+  return (
+    <div className="space-y-4">
+      <Burbulla ton={aviso?.ton}>
+        {aviso && <span className="block text-base font-medium">{aviso.texto}</span>}
+        {f.traducion ? <>«{f.traducion}»</> : t.ordenaAxuda}
+      </Burbulla>
+      <p className="text-center text-sm font-semibold text-slate-500">
+        {k + 1} / {orde.length}
+      </p>
+      <div className="flex min-h-16 flex-wrap items-center gap-2 rounded-2xl border-2 border-dashed border-violet-300 bg-white p-3">
+        {postas.map((i, n) => (
+          <button key={n} onClick={() => setPostas(postas.filter((_, m) => m !== n))} className="min-h-11 cursor-pointer rounded-xl bg-violet-600 px-3 text-lg font-bold text-white" lang="fr">
+            {f.palabras[i]}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap justify-center gap-2">
+        {fichas.map(({ p, i }) => (
+          <button
+            key={i}
+            disabled={postas.includes(i)}
+            onClick={() => setPostas([...postas, i])}
+            className="min-h-12 cursor-pointer rounded-xl border-2 border-violet-200 bg-white px-4 text-lg font-bold text-slate-800 hover:bg-violet-50 disabled:opacity-25"
+            lang="fr"
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <button className="btn min-h-12 flex-1 text-lg" disabled={postas.length === 0} onClick={() => setPostas(postas.slice(0, -1))}>
+          {t.borrar}
+        </button>
+        <button className="btn btn-primario min-h-12 flex-2 border-violet-600 bg-violet-600 text-lg hover:bg-violet-700" disabled={!feita} onClick={comprobar}>
+          {t.comprobar}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ——— Escribir ———
+
+/** Para comparar respuestas escritas: minúsculas, apóstrofos rectos y espacios normales. */
+export const normalizar = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[’`´]/g, "'")
+    .replace(/\s*'\s*/g, "'")
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([?!.,])/g, '$1')
+    .replace(/[.!]$/, '')
+    .trim()
+const sinAcentos = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/œ/g, 'oe')
+
+export type Correccion = 'ben' | 'acentos' | 'mal'
+
+/** Compara lo escrito con las respuestas válidas; distingue el fallo que solo es de acentos. */
+export function corrixir(escrito: string, respostas: string[]): Correccion {
+  const e = normalizar(escrito)
+  if (respostas.some((r) => normalizar(r) === e)) return 'ben'
+  if (respostas.some((r) => sinAcentos(normalizar(r)) === sinAcentos(e))) return 'acentos'
+  return 'mal'
+}
+
+const TECLAS = ['é', 'è', 'ê', 'à', 'â', 'ç', 'ô', 'û', 'î', 'œ', "'"]
+
+/** Campo para escribir en francés, con teclas para las letras que no están en el teclado español. */
+export function Campo({ onEnviar, desactivado }: { onEnviar: (texto: string) => void; desactivado?: boolean }) {
+  const t = useT()
+  const [texto, setTexto] = useState('')
+  const ref = useRef<HTMLInputElement>(null)
+  function tecla(c: string) {
+    const el = ref.current
+    const ini = el?.selectionStart ?? texto.length
+    const fin = el?.selectionEnd ?? texto.length
+    const novo = texto.slice(0, ini) + c + texto.slice(fin)
+    setTexto(novo)
+    requestAnimationFrame(() => {
+      el?.focus()
+      el?.setSelectionRange(ini + c.length, ini + c.length)
+    })
+  }
+  return (
+    <form
+      className="space-y-2"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (texto.trim()) onEnviar(texto)
+      }}
+    >
+      <div className="flex gap-2">
+        <input
+          ref={ref}
+          value={texto}
+          disabled={desactivado}
+          onChange={(e) => setTexto(e.target.value)}
+          placeholder={t.escribeAqui}
+          autoCapitalize="off"
+          autoCorrect="off"
+          autoComplete="off"
+          spellCheck={false}
+          lang="fr"
+          className="min-h-14 flex-1 rounded-2xl border-2 border-violet-200 bg-white px-4 text-xl font-semibold text-slate-800 outline-none focus:border-violet-500 disabled:bg-slate-50"
+        />
+        <button className="btn btn-primario min-h-14 border-violet-600 bg-violet-600 px-5 text-lg hover:bg-violet-700" disabled={desactivado || !texto.trim()}>
+          {t.comprobar}
+        </button>
+      </div>
+      {!desactivado && (
+        <div className="flex flex-wrap gap-1.5">
+          {TECLAS.map((c) => (
+            <button key={c} type="button" onClick={() => tecla(c)} className="h-10 min-w-10 cursor-pointer rounded-lg border border-slate-300 bg-white px-2 text-lg font-semibold text-slate-700 hover:bg-violet-50">
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
+    </form>
+  )
+}
+
+// ——— Prueba y series de práctica ———
+
+/** Unha pregunta: escoller unha resposta, tocar no debuxo ou escribir. */
 export type Pregunta =
-  | { tipo: 'elixe'; texto: string; correcta: string; outras: string[]; explica: string; visual?: ReactNode }
-  | { tipo: 'toca'; texto: string; correcta: string; Debuxo: Debuxo; nomes: Record<string, string>; explica: string }
+  | { tipo: 'elixe'; texto: ReactNode; correcta: string; outras: string[]; explica: ReactNode; visual?: ReactNode; oir?: string }
+  | { tipo: 'toca'; texto: ReactNode; correcta: string; Debuxo: Debuxo; nomes: Record<string, string>; explica: ReactNode; oir?: string }
+  | { tipo: 'escribe'; texto: ReactNode; respostas: string[]; explica?: ReactNode; oir?: string }
 
 export const PREGUNTAS_PROBA = 8
 
-/** Proba: 8 preguntas ao chou, unha soa oportunidade en cada unha, e estrelas ao final. */
-export function Proba({ id, preguntas }: { id: string; preguntas: Pregunta[] }) {
+/** Nota sobre 10 con un decimal, como en el examen de clase. */
+export const notaSobre10 = (acertos: number, total: number) => Math.round((acertos / total) * 100) / 10
+
+/**
+ * Proba: preguntas ao chou, unha soa oportunidade en cada unha, e estrelas ao final. Con `practica`, é unha serie
+ * de exercicios sen estrelas que se pode repetir (sen pantalla de inicio e sen gardar marca). Con `xerar`, as
+ * preguntas sácaas esa función (o exame colle as mesmas de cada parada) e o final dá a nota sobre 10.
+ */
+export function Proba({
+  id,
+  preguntas = [],
+  cantas = PREGUNTAS_PROBA,
+  practica,
+  xerar,
+  acabar,
+}: {
+  id?: string
+  preguntas?: Pregunta[]
+  cantas?: number
+  practica?: boolean
+  xerar?: () => Pregunta[]
+  acabar?: () => void
+}) {
+  const t = useT()
+  const lingua = useFalar()
   const { progreso, marcar } = useAvance()
   const [rolda, setRolda] = useState(0)
-  const lista = useMemo(() => barallar(preguntas).slice(0, PREGUNTAS_PROBA), [preguntas, rolda])
+  const lista = useMemo(() => (xerar ? xerar() : barallar(preguntas).slice(0, cantas)), [preguntas, rolda, cantas, xerar])
+  const exame = !!xerar
   const opcions = useMemo(() => lista.map((p) => (p.tipo === 'elixe' ? barallar([p.correcta, ...p.outras]) : [])), [lista])
   const [k, setK] = useState(0)
   const [resposta, setResposta] = useState<string | null>(null)
+  const [correccion, setCorreccion] = useState<Correccion | null>(null)
   const [acertos, setAcertos] = useState(0)
-  const [empezada, setEmpezada] = useState(false)
-  const mellor = progreso.pruebas[id]
+  const [empezada, setEmpezada] = useState(!!practica)
+  const mellor = id ? progreso.pruebas[id] : undefined
+  const p = lista[k]
 
-  function responder(r: string) {
+  // Si la pregunta trae algo que oír, se lee al aparecer.
+  useEffect(() => {
+    if (empezada && p?.oir && lingua) fala(p.oir, lingua)
+  }, [empezada, p, lingua])
+
+  function responder(r: string, c?: Correccion) {
     if (resposta !== null) return
+    const nota = c ?? (p.tipo !== 'escribe' && r === p.correcta ? 'ben' : 'mal')
     setResposta(r)
-    if (r === lista[k].correcta) setAcertos(acertos + 1)
+    setCorreccion(nota)
+    if (nota === 'ben') setAcertos(acertos + 1)
   }
   function seguinte() {
-    if (k + 1 === lista.length) marcar(id, acertos)
+    if (k + 1 === lista.length) {
+      if (id && !practica) marcar(id, acertos)
+      acabar?.()
+    }
     setK(k + 1)
     setResposta(null)
+    setCorreccion(null)
   }
   function outraVez() {
     setRolda(rolda + 1)
     setK(0)
     setResposta(null)
+    setCorreccion(null)
     setAcertos(0)
     setEmpezada(true)
   }
@@ -493,56 +924,75 @@ export function Proba({ id, preguntas }: { id: string; preguntas: Pregunta[] }) 
   if (!empezada)
     return (
       <section className="space-y-4">
-        <Burbulla>
-          Na proba hai {PREGUNTAS_PROBA} preguntas e só tes unha oportunidade en cada unha. Se acertas todas, gañas tres estrelas!
-        </Burbulla>
+        <Burbulla>{exame ? t.exameIntro(lista.length) : t.probaIntro(lista.length)}</Burbulla>
         {mellor !== undefined && (
           <p className="text-center text-lg font-semibold text-slate-600">
-            A túa mellor marca: {mellor} de {PREGUNTAS_PROBA} <Estrelas n={estrellas(mellor, PREGUNTAS_PROBA)} />
+            {exame ? (
+              t.mellorNota(String(notaSobre10(mellor, lista.length)).replace('.', ','))
+            ) : (
+              <>
+                {t.mellor(mellor, cantas)} <Estrelas n={estrellas(mellor, cantas)} />
+              </>
+            )}
           </p>
         )}
         <button className="btn btn-primario min-h-14 w-full border-violet-600 bg-violet-600 text-xl hover:bg-violet-700" onClick={() => setEmpezada(true)}>
-          Comezar a proba
+          {exame ? t.comezarExame : t.comezarProba}
         </button>
       </section>
     )
 
-  if (k >= lista.length) {
-    const n = estrellas(acertos, PREGUNTAS_PROBA)
+  if (k >= lista.length && exame) {
+    const nota = notaSobre10(acertos, lista.length)
     return (
       <section className="space-y-4 text-center">
-        <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-6xl">
-          <Estrelas n={n} />
-        </motion.div>
-        <p className="text-2xl font-black text-slate-800">
-          {acertos} de {PREGUNTAS_PROBA} ben
-        </p>
-        <Burbulla ton={n > 0 ? 'ben' : 'normal'}>
-          {n === 3 ? 'Perfecto! Tres estrelas!' : n > 0 ? 'Moi ben! Repasa o que fallaches e volve intentalo para gañar máis estrelas.' : 'Aínda non. Volve a Descubre e a Xoga, e logo téntao outra vez.'}
-        </Burbulla>
+        <motion.p initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`text-6xl font-black ${nota >= 5 ? 'text-emerald-600' : 'text-rose-600'}`}>
+          {t.nota(String(nota).replace('.', ','))}
+        </motion.p>
+        <p className="text-2xl font-black text-slate-800">{t.benDe(acertos, lista.length)}</p>
+        <Burbulla ton={nota >= 5 ? 'ben' : 'normal'}>{t.exameFin(nota)}</Burbulla>
         <button className="btn btn-primario min-h-14 w-full border-violet-600 bg-violet-600 text-xl hover:bg-violet-700" onClick={outraVez}>
-          Facer outra proba
+          {t.outroExame}
         </button>
       </section>
     )
   }
 
-  const p = lista[k]
-  const ben = resposta === p.correcta
+  if (k >= lista.length) {
+    const n = estrellas(acertos, lista.length)
+    return (
+      <section className="space-y-4 text-center">
+        {!practica && (
+          <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-6xl">
+            <Estrelas n={n} />
+          </motion.div>
+        )}
+        <p className="text-2xl font-black text-slate-800">{t.benDe(acertos, lista.length)}</p>
+        <Burbulla ton={practica || n > 0 ? 'ben' : 'normal'}>{practica ? t.practicaFin(acertos, lista.length) : t.probaFin(n)}</Burbulla>
+        <button className="btn btn-primario min-h-14 w-full border-violet-600 bg-violet-600 text-xl hover:bg-violet-700" onClick={outraVez}>
+          {practica ? t.outraVez : t.outraProba}
+        </button>
+      </section>
+    )
+  }
+
+  const ben = correccion === 'ben'
+  const solucion = p.tipo === 'escribe' ? p.respostas[0] : undefined
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between text-sm font-bold text-slate-500">
-        <span>
-          Pregunta {k + 1} de {lista.length}
-        </span>
+        <span>{t.pregunta(k + 1, lista.length)}</span>
         <span className="flex gap-1">
           {lista.map((_, i) => (
-            <span key={i} className={`h-2.5 w-6 rounded-full ${i < k ? 'bg-violet-400' : i === k ? 'bg-violet-700' : 'bg-slate-200'}`} />
+            <span key={i} className={`h-2.5 w-4 rounded-full sm:w-6 ${i < k ? 'bg-violet-400' : i === k ? 'bg-violet-700' : 'bg-slate-200'}`} />
           ))}
         </span>
       </div>
-      <h2 className="text-2xl font-black text-slate-800">{p.texto}</h2>
-      {p.tipo === 'elixe' ? (
+      <h2 className="flex flex-wrap items-center gap-2 text-2xl font-black text-slate-800">
+        {p.texto}
+        {p.oir && <Son texto={p.oir} grande />}
+      </h2>
+      {p.tipo === 'elixe' && (
         <>
           {p.visual && <div className="overflow-hidden rounded-2xl border-2 border-violet-100 bg-white p-2">{p.visual}</div>}
           <div className="grid gap-2 sm:grid-cols-2">
@@ -568,7 +1018,8 @@ export function Proba({ id, preguntas }: { id: string; preguntas: Pregunta[] }) 
             ))}
           </div>
         </>
-      ) : (
+      )}
+      {p.tipo === 'toca' && (
         <div className="overflow-hidden rounded-2xl border-2 border-violet-100 bg-white">
           <p.Debuxo
             onToca={(id) => responder(id)}
@@ -577,14 +1028,25 @@ export function Proba({ id, preguntas }: { id: string; preguntas: Pregunta[] }) 
           />
         </div>
       )}
+      {p.tipo === 'escribe' && <Campo key={k} desactivado={resposta !== null} onEnviar={(texto) => responder(texto, corrixir(texto, p.respostas))} />}
       {resposta !== null && (
         <>
           <Burbulla ton={ben ? 'ben' : 'mal'}>
-            {ben ? 'Ben! ' : p.tipo === 'toca' ? `Non: tocaches ${p.nomes[resposta] ?? 'outro sitio'}. ` : 'Non. '}
-            <span className="font-medium">{p.explica}</span>
+            {p.tipo === 'escribe' ? (
+              <>
+                {ben ? t.ben : correccion === 'acentos' ? t.acentos(solucion!) : `${t.non}${t.solucion(solucion!)}`}
+                {solucion && <Son texto={solucion} />}
+                {p.explica && <span className="block font-medium">{p.explica}</span>}
+              </>
+            ) : (
+              <>
+                {ben ? t.ben : p.tipo === 'toca' ? t.tocaches(p.nomes[resposta]) : t.non}
+                <span className="font-medium">{p.explica}</span>
+              </>
+            )}
           </Burbulla>
           <button className="btn btn-primario min-h-14 w-full border-violet-600 bg-violet-600 text-xl hover:bg-violet-700" onClick={seguinte}>
-            {k + 1 === lista.length ? 'Ver o resultado' : 'Seguinte pregunta →'}
+            {k + 1 === lista.length ? t.verResultado : t.seguintePregunta}
           </button>
         </>
       )}
@@ -593,8 +1055,9 @@ export function Proba({ id, preguntas }: { id: string; preguntas: Pregunta[] }) 
 }
 
 export function Estrelas({ n }: { n: number }) {
+  const t = useT()
   return (
-    <span role="img" aria-label={`${n} de 3 estrelas`}>
+    <span role="img" aria-label={t.estrelas(n)}>
       <span className="text-amber-400">{'★'.repeat(n)}</span>
       <span className="text-slate-300">{'★'.repeat(3 - n)}</span>
     </span>

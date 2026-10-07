@@ -88,7 +88,12 @@ export const CURSOS: Curso[] = [
       sinLecciones('lingua-galega', 'Lingua Galega e Literatura', '📜'),
       sinLecciones('lengua-castellana', 'Lengua Castellana y Literatura', '✒️'),
       sinLecciones('ingles', 'Inglés', '🛰️'),
-      sinLecciones('segunda-lingua', 'Segunda Lingua Estranxeira', '🌍'),
+      {
+        id: 'frances',
+        nombre: 'Francés',
+        icono: '🌍',
+        lecciones: [{ id: 'unite1', titulo: 'Unité 1 · La famille, le corps, les métiers', resumen: 'Verbos en -er, familia, cuerpo, profesiones y preguntas.' }],
+      },
       sinLecciones('tecnoloxia', 'Tecnoloxía e Dixitalización', '🤖'),
       sinLecciones('musica', 'Música', '🎵'),
       sinLecciones('educacion-fisica', 'Educación Física', '☄️'),
