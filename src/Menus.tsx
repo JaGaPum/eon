@@ -80,7 +80,13 @@ export function Inicio() {
         <motion.div animate={{ rotate: [0, 6, -6, 0] }} transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}>
           <Logo grande />
         </motion.div>
-        <h1 className="bg-gradient-to-r from-indigo-200 via-white to-fuchsia-200 bg-clip-text text-6xl font-black tracking-tight text-transparent">Eón</h1>
+        {/* Degradado escrito a mano, con el prefijo -webkit-: el de Tailwind se queda transparente en móviles antiguos. */}
+        <h1
+          className="text-6xl font-black tracking-tight text-white"
+          style={{ backgroundImage: 'linear-gradient(to right, #c7d2fe, #ffffff, #f5d0fe)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+        >
+          Eón
+        </h1>
         <p className="text-lg text-indigo-200">Un viaje por el conocimiento, a través del espacio y del tiempo.</p>
       </div>
       <h2 className="mt-10 text-center text-sm font-bold tracking-widest text-indigo-300 uppercase">¿Quién viaja hoy?</h2>

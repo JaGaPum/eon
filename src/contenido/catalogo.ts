@@ -90,7 +90,10 @@ export const CURSOS: Curso[] = [
         id: 'matematicas',
         nombre: 'Matemáticas',
         icono: '🪐',
-        lecciones: [{ id: 'tema1', titulo: 'Tema 1 · Números enteros y divisibilidad', resumen: 'Divisibilidad, m.c.d. y m.c.m., enteros y operaciones combinadas.' }],
+        lecciones: [
+          { id: 'tema1', titulo: 'Tema 1 · Números enteros y divisibilidad', resumen: 'Divisibilidad, m.c.d. y m.c.m., enteros y operaciones combinadas.' },
+          { id: 'tema2', titulo: 'Tema 2 · Fracciones y decimales', resumen: 'Equivalentes, operaciones y combinadas, decimales periódicos y aproximaciones.' },
+        ],
       },
       sinLecciones('fisica-quimica', 'Física e Química', '⚛️'),
       sinLecciones('xeografia-historia', 'Xeografía e Historia', '⏳'),
@@ -114,3 +117,4 @@ export const CURSOS: Curso[] = [
 
 /** Dirección del Tema 1 de Matemáticas de 2º, de la que cuelgan sus ocho paradas. */
 export const RUTA_TEMA1 = '#/2eso/matematicas/tema1'
+export const RUTA_TEMA2 = '#/2eso/matematicas/tema2'

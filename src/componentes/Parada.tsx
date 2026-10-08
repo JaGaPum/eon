@@ -1,8 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { Progreso } from '../lib/progreso'
-import { RUTA_TEMA1 } from '../contenido/catalogo'
-import { VIDEOS } from '../contenido/tema1'
+import { useTema } from './tema'
 import { Prueba } from './Prueba'
 import { avisarVideo } from './Musica'
 import { TarjetaVideos, VentanaVideo } from './Videos'
@@ -27,6 +26,7 @@ export interface PropsParada {
 
 /** Armazón común: título, pestañas y los cuatro modos. */
 export default function Parada({ id, titulo, modo, paneles }: { id: string; titulo: string; modo?: string; paneles: Record<Modo, ReactNode> }) {
+  const { ruta, videos: VIDEOS } = useTema()
   const activo = MODOS.find(([m]) => m === modo)?.[0] ?? 'entender'
   const videos = VIDEOS[id] ?? []
   const [video, setVideo] = useState<number | null>(null)
@@ -42,7 +42,7 @@ export default function Parada({ id, titulo, modo, paneles }: { id: string; titu
 
   return (
     <>
-      <a href={RUTA_TEMA1} className="font-semibold text-indigo-700">
+      <a href={ruta} className="font-semibold text-indigo-700">
         ← Mapa del tema
       </a>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
@@ -59,7 +59,7 @@ export default function Parada({ id, titulo, modo, paneles }: { id: string; titu
         {MODOS.map(([m, nombre]) => (
           <a
             key={m}
-            href={`${RUTA_TEMA1}/${id}/${m}`}
+            href={`${ruta}/${id}/${m}`}
             className={`truncate rounded-xl px-1 py-2.5 text-center text-xs font-semibold sm:text-base ${
               m === activo ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600'
             }`}
@@ -86,11 +86,13 @@ export default function Parada({ id, titulo, modo, paneles }: { id: string; titu
 export interface Tarjeta {
   titulo: string
   texto: ReactNode
-  visual: ReactNode
+  /** Sin dibujo, el texto ocupa todo el ancho. */
+  visual?: ReactNode
 }
 
 /** Modo Entender: una idea por tarjeta, con adelante y atrás. */
 export function Tarjetas({ tarjetas, parada }: { tarjetas: Tarjeta[]; parada: string }) {
+  const { ruta } = useTema()
   const [i, setI] = useState(0)
   const t = tarjetas[i]
 
@@ -99,9 +101,9 @@ export function Tarjetas({ tarjetas, parada }: { tarjetas: Tarjeta[]; parada: st
       <AnimatePresence mode="wait">
         <motion.div key={i} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.18 }}>
           <h2 className="mb-3 text-xl font-bold">{t.titulo}</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-3 text-lg leading-relaxed">{t.texto}</div>
-            <div className="lienzo">{t.visual}</div>
+          <div className={`grid gap-4 ${t.visual ? 'md:grid-cols-2' : ''}`}>
+            <div className="space-y-3 overflow-x-auto text-lg leading-relaxed">{t.texto}</div>
+            {t.visual && <div className="lienzo">{t.visual}</div>}
           </div>
         </motion.div>
       </AnimatePresence>
@@ -118,7 +120,7 @@ export function Tarjetas({ tarjetas, parada }: { tarjetas: Tarjeta[]; parada: st
             Siguiente →
           </button>
         ) : (
-          <a className="btn btn-primario" href={`${RUTA_TEMA1}/${parada}/probar`}>
+          <a className="btn btn-primario" href={`${ruta}/${parada}/probar`}>
             Pruébalo tú →
           </a>
         )}

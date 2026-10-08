@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { descomponer, divisores, esPrimo, factores } from '../../lib/mates'
 import { Arbol, Columna, Fichas, Resultado } from '../../componentes/visuales'
-import { RUTA_TEMA1 } from '../../contenido/catalogo'
+import { useTema } from '../../componentes/tema'
 
 const PASOS_56 = descomponer(56)
 
@@ -109,6 +109,7 @@ const TARJETAS: { titulo: string; texto: ReactNode; visual: ReactNode }[] = [
 ]
 
 export default function Entender() {
+  const { ruta } = useTema()
   const [i, setI] = useState(0)
   const t = TARJETAS[i]
 
@@ -136,7 +137,7 @@ export default function Entender() {
             Siguiente →
           </button>
         ) : (
-          <a className="btn btn-primario" href={`${RUTA_TEMA1}/descomposicion/probar`}>
+          <a className="btn btn-primario" href={`${ruta}/descomposicion/probar`}>
             Pruébalo tú →
           </a>
         )}

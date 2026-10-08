@@ -2,7 +2,8 @@
 import { useState, type ReactNode } from 'react'
 import type { Progreso } from '../lib/progreso'
 import { Aviso, type Mensaje } from './visuales'
-import { CampoRespuesta, esCorrecta, escribirRespuesta, type Pregunta } from './Respuesta'
+import { TextoMat } from './mat'
+import { CampoRespuesta, esCorrecta, escribirRespuesta, revisarFracciones, type Pregunta } from './Respuesta'
 
 export type { Entrada, Pregunta } from './Respuesta'
 
@@ -24,7 +25,7 @@ interface Props {
 }
 
 /** Qué decir cuando falla y la pregunta no trae un diagnóstico propio. */
-function falloGenerico(q: Pregunta, respuesta: string): string {
+function falloGenerico(q: Pregunta, respuesta: string): ReactNode {
   const e = q.entrada
   const dadas = respuesta ? respuesta.split('|') : []
   const buenas = q.correcta ? q.correcta.split('|') : []
@@ -41,7 +42,20 @@ function falloGenerico(q: Pregunta, respuesta: string): string {
     return bien === 1 ? 'El primero está bien. Revisa a partir de ahí.' : `Los ${bien} primeros están bien. Revisa a partir de ahí.`
   }
   if (typeof e === 'object' && 'primos' in e) return 'Esos no son sus factores primos. Comprueba que al multiplicarlos sale el número.'
-  return `No es ${escribirRespuesta(q, respuesta)}. Inténtalo de nuevo o pide una pista.`
+  if (typeof e === 'object' && ('fraccion' in e || 'fracciones' in e || 'mixto' in e)) {
+    const r = revisarFracciones(q, respuesta)
+    if (r.valor && !r.forma) {
+      if ('fraccion' in e) return 'Vale lo mismo, pero no es irreducible: todavía se puede simplificar.'
+      if ('fracciones' in e) return `Son equivalentes, pero el denominador común tiene que ser el m.c.m. de los denominadores: ${q.correcta.split('|')[0].split('/')[1]}.`
+      return 'La fracción que acompaña a la parte entera tiene que ser más pequeña que la unidad.'
+    }
+    if ('fracciones' in e) return 'Alguna de las fracciones no vale lo mismo que la original. Comprueba por cuánto has multiplicado cada una.'
+  }
+  return (
+    <>
+      No es <TextoMat s={escribirRespuesta(q, respuesta)} />. Inténtalo de nuevo o pide una pista.
+    </>
+  )
 }
 
 export default function Practica({ clase, generar, progreso, apuntar }: Props) {

@@ -2,10 +2,18 @@ import { useEffect, useState, type ComponentType } from 'react'
 import { ContextoAvance, useProgreso, type Progreso } from './lib/progreso'
 import type { PropsParada } from './componentes/Parada'
 import { Musica } from './componentes/Musica'
-import { Examen, estrellas, PREGUNTAS_PRUEBA } from './componentes/Prueba'
+import { Examen } from './componentes/Prueba'
+import { ContextoTema, type Tema } from './componentes/tema'
+import { TEMA1, TEMA2 } from './contenido/temas'
+import Fracciones from './paradas/tema2/Fracciones'
+import Comparar from './paradas/tema2/Comparar'
+import Operaciones from './paradas/tema2/Operaciones'
+import Combinadas2 from './paradas/tema2/Combinadas'
+import Decimales from './paradas/tema2/Decimales'
+import Aproximar from './paradas/tema2/Aproximar'
 import { ALUMNOS, CURSOS, cursosDe } from './contenido/catalogo'
 import { Cursos, Inicio, Lecciones, Logo, Materias } from './Menus'
-import Mapa, { EJERCICIOS } from './Mapa'
+import Mapa, { avanceTema } from './Mapa'
 import Reglas from './paradas/Reglas'
 import Descomposicion from './paradas/descomposicion/Descomposicion'
 import { Mcd, Mcm } from './paradas/McdMcm'
@@ -16,7 +24,7 @@ import Combinadas from './paradas/Combinadas'
 import Paisaxes, { avancePaisaxes } from './primaria/paisaxes/Unidade'
 import Unite1, { avanceUnite1 } from './idiomas/frances/Unite'
 
-// Paradas del Tema 1 de Matemáticas de 2º, la única lección construida por ahora.
+// Paradas del Tema 1 de Matemáticas de 2º.
 const PARADAS: Record<string, ComponentType<PropsParada>> = {
   reglas: Reglas,
   descomposicion: Descomposicion,
@@ -26,6 +34,15 @@ const PARADAS: Record<string, ComponentType<PropsParada>> = {
   sumas: Sumas,
   productos: Productos,
   combinadas: Combinadas,
+}
+
+// Temas de Matemáticas con paradas (Entender, Probar, Desmenuzar, Practicar y Prueba), por id de lección.
+const TEMAS: Record<string, { tema: Tema; paradas: Record<string, ComponentType<PropsParada>> }> = {
+  tema1: { tema: TEMA1, paradas: PARADAS },
+  tema2: {
+    tema: TEMA2,
+    paradas: { fracciones: Fracciones, comparar: Comparar, operaciones: Operaciones, combinadas: Combinadas2, decimales: Decimales, aproximar: Aproximar },
+  },
 }
 
 const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; modo?: string; progreso: Progreso }>; avance: (p: Progreso) => string }> = {
@@ -84,7 +101,8 @@ export default function App() {
   // Las unidades con juegos (las de Olivia y la de Francés) llevan su propio mapa y sus paradas; el Tema 1 de
   // Matemáticas usa las de abajo.
   const Unidade = leccion ? UNIDADES[leccion.id] : undefined
-  const Parada = leccion && !Unidade ? PARADAS[idParada] : undefined
+  const tema = leccion ? TEMAS[leccion.id] : undefined
+  const Parada = tema?.paradas[idParada]
 
   const migas = [
     alumno && { texto: alumno.nombre, href: `#/${alumno.id}` },
@@ -95,9 +113,8 @@ export default function App() {
 
   function avance(idLeccion: string): string {
     if (UNIDADES[idLeccion]) return UNIDADES[idLeccion].avance(progreso)
-    const ids = Object.values(EJERCICIOS).flat()
-    const conseguidas = Object.keys(PARADAS).reduce((t, p) => t + estrellas(progreso.pruebas[p], PREGUNTAS_PRUEBA), 0)
-    return `★ ${conseguidas} de 24 · ${ids.filter((id) => progreso.hechos[id]).length} de ${ids.length} ejercicios de clase`
+    if (TEMAS[idLeccion]) return avanceTema(TEMAS[idLeccion].tema, progreso)
+    return ''
   }
 
   return (
@@ -126,16 +143,20 @@ export default function App() {
       <main>
         {Unidade ? (
           <Unidade.Compoñente parada={idParada} modo={modo} progreso={progreso} />
-        ) : Parada ? (
-          <div className="tablero">
-            <Parada key={idParada} modo={modo} progreso={progreso} apuntar={apuntar} />
-          </div>
-        ) : leccion && idParada === 'examen' ? (
-          <div className="tablero">
-            <Examen />
-          </div>
-        ) : leccion ? (
-          <Mapa progreso={progreso} />
+        ) : tema ? (
+          <ContextoTema.Provider value={tema.tema}>
+            {Parada ? (
+              <div className="tablero">
+                <Parada key={idParada} modo={modo} progreso={progreso} apuntar={apuntar} />
+              </div>
+            ) : idParada === 'examen' ? (
+              <div className="tablero">
+                <Examen />
+              </div>
+            ) : (
+              <Mapa progreso={progreso} />
+            )}
+          </ContextoTema.Provider>
         ) : materia && curso ? (
           <Lecciones curso={curso} materia={materia} avance={avance} />
         ) : curso ? (

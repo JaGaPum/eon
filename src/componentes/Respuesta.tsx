@@ -3,6 +3,8 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 import { agrupar, esPrimo, valor, type Potencia } from '../lib/mates'
 import { CampoEntero, ent, leerEntero } from './piezas'
 import { colorPrimo } from './visuales'
+import { TextoMat } from './mat'
+import { leer as leerFr, leerDecimal, mcdDe } from '../lib/fracciones'
 
 export type Entrada =
   | 'numero'
@@ -16,6 +18,14 @@ export type Entrada =
   | { primos: true }
   /** Un número que se puede dar tal cual o en potencias, como el m.c.d. y el m.c.m. */
   | { numeroOPotencias: true }
+  /** Una fracción (o un entero). Con `irreducible`, tiene que estar simplificada del todo. */
+  | { fraccion: true; irreducible?: boolean }
+  /** Varias fracciones reducidas a común denominador (el m.c.m.), en el orden en que se dan. */
+  | { fracciones: number }
+  /** Un número mixto: parte entera y fracción propia. */
+  | { mixto: true }
+  /** Un número decimal. `tol`: cuánto se puede separar del correcto; `unidad`: lo que va detrás (%, m, €). */
+  | { decimal: true; tol?: number; unidad?: string }
 
 export interface Pregunta {
   /** Único en toda la app: «parada:hoja-número». Vacío en los ejercicios generados. */
@@ -58,9 +68,45 @@ export const valorRespuesta = (resp: string) => {
   return pot ? valor(pot) : Number(resp)
 }
 
+/** Dos fracciones valen lo mismo (productos cruzados iguales). */
+const mismoValor = (a: { n: number; d: number }, b: { n: number; d: number }) => a.n * b.d === b.n * a.d
+
+/** Cómo es una respuesta con fracciones: si vale lo mismo que la correcta y si está como se pide. */
+export function revisarFracciones(q: Pregunta, resp: string): { valor: boolean; forma: boolean } {
+  const e = q.entrada
+  if (typeof e !== 'object') return { valor: false, forma: false }
+  if ('fraccion' in e) {
+    const a = leerFr(resp)
+    const c = leerFr(q.correcta)!
+    if (!a) return { valor: false, forma: false }
+    return { valor: mismoValor(a, c), forma: !e.irreducible || mcdDe(a.n, a.d) === 1 }
+  }
+  if ('fracciones' in e) {
+    const as = resp.split('|').map(leerFr)
+    const cs = q.correcta.split('|').map((x) => leerFr(x)!)
+    if (as.length !== cs.length || as.some((a) => !a)) return { valor: false, forma: false }
+    return { valor: as.every((a, k) => mismoValor(a!, cs[k])), forma: as.every((a, k) => a!.d === cs[k].d) }
+  }
+  if ('mixto' in e) {
+    const [ae, an, ad] = resp.split('|').map(Number)
+    const [ce, cn, cd] = q.correcta.split(/[ /]/).map(Number)
+    return { valor: ae === ce && ad > 0 && an * cd === cn * ad, forma: an < ad }
+  }
+  return { valor: false, forma: false }
+}
+
 export function esCorrecta(q: Pregunta, resp: string | undefined): boolean {
   if (resp === undefined) return false
-  if (typeof q.entrada === 'object' && 'numeroOPotencias' in q.entrada) return valorRespuesta(resp) === Number(q.correcta)
+  const e = q.entrada
+  if (typeof e === 'object' && 'numeroOPotencias' in e) return valorRespuesta(resp) === Number(q.correcta)
+  if (typeof e === 'object' && ('fraccion' in e || 'fracciones' in e || 'mixto' in e)) {
+    const r = revisarFracciones(q, resp)
+    return r.valor && r.forma
+  }
+  if (typeof e === 'object' && 'decimal' in e) {
+    const x = leerDecimal(resp)
+    return x !== null && Math.abs(x - Number(q.correcta)) <= (e.tol ?? 1e-9)
+  }
   return resp === q.correcta
 }
 
@@ -71,6 +117,17 @@ const escribirPotencias = (pot: Potencia[]) => pot.map(([p, e]) => p + elevado(e
 /** Una respuesta (la suya o la correcta) escrita para leerla. */
 export function escribirRespuesta(q: Pregunta, resp: string): string {
   const e = q.entrada
+  const menos = (x: string) => x.replace(/-/g, '−')
+  if (typeof e === 'object' && 'fraccion' in e) return menos(resp || '—')
+  if (typeof e === 'object' && 'fracciones' in e) return menos(resp.split('|').join(',  '))
+  if (typeof e === 'object' && 'mixto' in e) {
+    if (resp.includes('|')) {
+      const [a, n, d] = resp.split('|')
+      return `${a} ${n}/${d}`
+    }
+    return resp
+  }
+  if (typeof e === 'object' && 'decimal' in e) return menos(resp.replace('.', ',')) + (e.unidad ? ` ${e.unidad}` : '')
   const pot = potenciasDe(resp)
   if (pot) return `${escribirPotencias(pot)} = ${valor(pot)}`
   if (e === 'numero' || 'numeroOPotencias' in e) return ent(Number(resp))
@@ -188,6 +245,8 @@ export function CampoRespuesta({ q, responder, boton = 'Comprobar' }: { q: Pregu
 
   if (e === 'numero') return campoNumero('Escribe solo el número. Si es negativo, pulsa ± para ponerle el signo menos.')
 
+  if ('fraccion' in e || 'fracciones' in e || 'mixto' in e || 'decimal' in e) return <CampoFracciones q={q} responder={responder} boton={boton} />
+
   if ('numeroOPotencias' in e) {
     return (
       <div className="space-y-3">
@@ -225,8 +284,8 @@ export function CampoRespuesta({ q, responder, boton = 'Comprobar' }: { q: Pregu
         <p className="text-sm text-slate-500">Toca la respuesta que creas correcta.</p>
         <div className="flex flex-wrap gap-2">
           {e.opciones.map((x) => (
-            <button key={x} className="btn" onClick={() => responder(x)}>
-              {x}
+            <button key={x} className="btn min-h-14 text-lg" onClick={() => responder(x)}>
+              <TextoMat s={x} />
             </button>
           ))}
         </div>
@@ -261,12 +320,14 @@ export function CampoRespuesta({ q, responder, boton = 'Comprobar' }: { q: Pregu
         </p>
         <div className="flex flex-wrap gap-2">
           {e.orden.map((x) => (
-            <button key={x} className="btn text-lg" disabled={sel.includes(x)} onClick={() => setSel((s) => (s.includes(x) ? s : [...s, x]))}>
-              {x}
+            <button key={x} className="btn min-h-14 text-lg" disabled={sel.includes(x)} onClick={() => setSel((s) => (s.includes(x) ? s : [...s, x]))}>
+              <TextoMat s={x} />
             </button>
           ))}
         </div>
-        <p className="min-h-11 rounded-xl border border-dashed border-slate-300 px-4 py-2 text-xl font-semibold">{sel.join(`  ${e.sep ?? '<'}  `) || '…'}</p>
+        <p className="min-h-14 rounded-xl border border-dashed border-slate-300 px-4 py-2 text-xl font-semibold">
+          {sel.length ? <TextoMat s={sel.join(`  ${e.sep ?? '<'}  `)} /> : '…'}
+        </p>
         <div className="flex gap-2">
           <button className="btn" disabled={!sel.length} onClick={() => setSel(sel.slice(0, -1))}>
             ← Quitar el último
@@ -290,5 +351,104 @@ export function CampoRespuesta({ q, responder, boton = 'Comprobar' }: { q: Pregu
         {boton}
       </button>
     </div>
+  )
+}
+
+/** El numerador con su signo: vale el botón ± y también escribir el menos con el teclado. */
+const signoTecleado = (negativo: boolean, v: string) => (negativo || /[-−]/.test(v) ? '-' : '') + v.replace(/[-−]/g, '')
+
+/** Una fracción para escribir: numerador encima del denominador, con ± para el signo. */
+function CasillaFraccion({ n, d, cambiar, signo = true, etiqueta }: { n: string; d: string; cambiar: (n: string, d: string) => void; signo?: boolean; etiqueta: string }) {
+  const negativo = /^[-−]/.test(n)
+  return (
+    <span className="inline-flex items-center gap-1" role="group" aria-label={etiqueta}>
+      {signo && (
+        <button type="button" className={`btn w-11 px-0 text-lg ${negativo ? 'btn-activo' : ''}`} onClick={() => cambiar(negativo ? n.replace(/^[-−]/, '') : `-${n}`, d)} aria-label="Cambiar el signo">
+          ±
+        </button>
+      )}
+      {negativo && <span className="text-2xl font-bold">−</span>}
+      <span className="inline-flex flex-col items-center gap-1">
+        <input className="campo h-10 w-20" inputMode="numeric" aria-label={`${etiqueta}: numerador`} value={n.replace(/^[-−]/, '')} onChange={(ev) => cambiar(signoTecleado(negativo, ev.target.value), d)} />
+        <span className="h-0.5 w-20 rounded bg-slate-700" />
+        <input className="campo h-10 w-20" inputMode="numeric" aria-label={`${etiqueta}: denominador`} value={d} onChange={(ev) => cambiar(n, ev.target.value)} />
+      </span>
+    </span>
+  )
+}
+
+/** Los campos de las respuestas del Tema 2: fracción, varias fracciones, número mixto o decimal. */
+function CampoFracciones({ q, responder, boton }: { q: Pregunta; responder: (resp: string) => void; boton: string }) {
+  const e = q.entrada as Exclude<Entrada, 'numero'>
+  const cuantas = 'fracciones' in e ? e.fracciones : 1
+  const [fs, setFs] = useState<[string, string][]>(() => Array.from({ length: cuantas }, (): [string, string] => ['', '']))
+  const [entero, setEntero] = useState('')
+  const [dec, setDec] = useState('')
+  const [error, setError] = useState('')
+
+  const leerUna = ([n, d]: [string, string]) => {
+    const limpio = `${n.replace(/\s+/g, '')}${d.trim() ? `/${d.trim()}` : ''}`
+    const x = leerFr(limpio)
+    return x ? `${x.n}${d.trim() ? `/${x.d}` : ''}` : null
+  }
+
+  function enviar(ev: FormEvent) {
+    ev.preventDefault()
+    if ('decimal' in e) {
+      const x = leerDecimal(dec)
+      if (x === null) return setError('Escribe un número, con coma para los decimales (por ejemplo 2,35).')
+      return responder(String(x))
+    }
+    if ('mixto' in e) {
+      const a = leerEntero(entero)
+      const n = leerEntero(fs[0][0])
+      const d = leerEntero(fs[0][1])
+      if (a === null || n === null || d === null || d <= 0) return setError('Rellena la parte entera, el numerador y el denominador.')
+      return responder(`${a}|${n}|${d}`)
+    }
+    const leidas = fs.map(leerUna)
+    if (leidas.some((x) => x === null))
+      return setError(cuantas > 1 ? 'Rellena todas las fracciones: numerador arriba y denominador abajo.' : 'Escribe el numerador arriba y el denominador abajo. Si es un entero, deja el denominador vacío.')
+    responder(leidas.join('|'))
+  }
+
+  const explicacion =
+    'decimal' in e
+      ? `Escribe el número con coma para los decimales${e.unidad ? ` (sin escribir «${e.unidad}»)` : ''}. Si es negativo, empieza por −.`
+      : 'mixto' in e
+        ? 'Escribe la parte entera y, al lado, la fracción que sobra (más pequeña que la unidad).'
+        : 'fracciones' in e
+          ? 'Escribe cada fracción ya pasada al denominador común, en el mismo orden.'
+          : `Escribe el numerador arriba y el denominador abajo; si es negativa, pulsa ±. Si el resultado es un entero, deja el denominador vacío.${'fraccion' in e && e.irreducible ? ' Simplifícala hasta la fracción irreducible.' : ''}`
+
+  return (
+    <form onSubmit={enviar} className="space-y-3">
+      <p className="text-sm text-slate-500">{explicacion}</p>
+      <div className="flex flex-wrap items-center gap-4">
+        {'decimal' in e ? (
+          <span className="inline-flex items-center gap-2">
+            <input className="campo w-40" inputMode="decimal" aria-label="Respuesta" value={dec} onChange={(ev) => setDec(ev.target.value)} />
+            {e.unidad && <span className="text-xl font-semibold">{e.unidad}</span>}
+          </span>
+        ) : 'mixto' in e ? (
+          <span className="inline-flex items-center gap-2">
+            <input className="campo w-20" inputMode="numeric" aria-label="Parte entera" value={entero} onChange={(ev) => setEntero(ev.target.value)} />
+            <CasillaFraccion n={fs[0][0]} d={fs[0][1]} signo={false} etiqueta="Fracción" cambiar={(n, d) => setFs([[n, d]])} />
+          </span>
+        ) : (
+          fs.map(([n, d], k) => (
+            <CasillaFraccion
+              key={k}
+              n={n}
+              d={d}
+              etiqueta={cuantas > 1 ? `Fracción ${k + 1}` : 'Respuesta'}
+              cambiar={(n2, d2) => setFs(fs.map((x, j): [string, string] => (j === k ? [n2, d2] : x)))}
+            />
+          ))
+        )}
+        <button className="btn btn-primario">{boton}</button>
+      </div>
+      {error && <p className="text-red-700">{error}</p>}
+    </form>
   )
 }

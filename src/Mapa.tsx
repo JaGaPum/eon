@@ -1,12 +1,17 @@
 import { motion } from 'motion/react'
-import { BLOQUES, CLASE, TITULO } from './contenido/tema1'
-import { RUTA_TEMA1 } from './contenido/catalogo'
-import { IDS } from './contenido/preguntas'
 import type { Progreso } from './lib/progreso'
-import { estrellas, examenAbierto, notaExamen, PREGUNTAS_EXAMEN, PREGUNTAS_PRUEBA } from './componentes/Prueba'
+import { estrellas, examenAbierto, notaExamen, PREGUNTAS_PRUEBA } from './componentes/Prueba'
+import { estacionesDe, preguntasExamen, useTema, type Tema } from './componentes/tema'
 
-// Ejercicios de clase de cada parada, para pintar el avance en el mapa.
-export const EJERCICIOS: Record<string, string[]> = { ...IDS, descomposicion: CLASE.map((e) => e.id) }
+/** Lo que se ve de un tema en la lista de lecciones: estrellas y ejercicios de clase hechos. */
+export function avanceTema(tema: Tema, progreso: Progreso): string {
+  const ids = Object.values(tema.ejercicios).flat()
+  const est = estacionesDe(tema)
+  const conseguidas = est.reduce((t, e) => t + estrellas(progreso.pruebas[tema.prefijo + e.id], PREGUNTAS_PRUEBA), 0)
+  return `★ ${conseguidas} de ${est.length * 3} · ${ids.filter((id) => progreso.hechos[id]).length} de ${ids.length} ejercicios de clase`
+}
+
+const NUMEROS = ['', 'Una', 'Dos', 'Tres', 'Cuatro', 'Cinco', 'Seis', 'Siete', 'Ocho', 'Nueve', 'Diez']
 
 function EstrellasMapa({ n }: { n: number }) {
   return (
@@ -18,16 +23,19 @@ function EstrellasMapa({ n }: { n: number }) {
 }
 
 export default function Mapa({ progreso }: { progreso: Progreso }) {
-  const abierto = examenAbierto(progreso.pruebas)
-  const mejor = progreso.pruebas.examen
-  const total = BLOQUES.flatMap((b) => b.estaciones).reduce((t, e) => t + estrellas(progreso.pruebas[e.id], PREGUNTAS_PRUEBA), 0)
+  const tema = useTema()
+  const { bloques: BLOQUES, ruta: RUTA_TEMA1, titulo: TITULO, ejercicios: EJERCICIOS, prefijo } = tema
+  const paradas = estacionesDe(tema).length
+  const abierto = examenAbierto(tema, progreso.pruebas)
+  const mejor = progreso.pruebas[prefijo + 'examen']
+  const total = estacionesDe(tema).reduce((t, e) => t + estrellas(progreso.pruebas[prefijo + e.id], PREGUNTAS_PRUEBA), 0)
 
   return (
     <>
       <h1 className="text-3xl font-bold text-white">{TITULO}</h1>
-      <p className="mt-1 text-indigo-200">Ocho paradas en la ruta. Puedes entrar, salir y volver cuando quieras.</p>
+      <p className="mt-1 text-indigo-200">{tema.intro || `${NUMEROS[paradas] ?? paradas} paradas en la ruta. Puedes entrar, salir y volver cuando quieras.`}</p>
       <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 font-bold text-amber-200">
-        <span className="text-xl">★</span> {total} de 24 estrellas
+        <span className="text-xl">★</span> {total} de {paradas * 3} estrellas
       </p>
 
       {BLOQUES.map((bloque) => (
@@ -58,7 +66,7 @@ export default function Mapa({ progreso }: { progreso: Progreso }) {
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className="flex flex-wrap items-center justify-between gap-x-2">
                       <b className="text-lg text-white">{e.titulo}</b>
-                      <EstrellasMapa n={estrellas(progreso.pruebas[e.id], PREGUNTAS_PRUEBA)} />
+                      <EstrellasMapa n={estrellas(progreso.pruebas[prefijo + e.id], PREGUNTAS_PRUEBA)} />
                     </span>
                     <span className="text-sm text-indigo-200">{e.resumen}</span>
                     <span className="mt-2 h-2 overflow-hidden rounded-full bg-white/15">
@@ -87,9 +95,9 @@ export default function Mapa({ progreso }: { progreso: Progreso }) {
         <span className="flex flex-col">
           <b className="text-lg text-white">Examen de todo el tema</b>
           <span className="text-sm text-indigo-200">
-            {abierto ? `${PREGUNTAS_EXAMEN} preguntas, dos de cada parada, con nota sobre 10.` : 'Se abre con al menos una estrella en la prueba de cada parada.'}
+            {abierto ? `${preguntasExamen(tema)} preguntas, ${tema.examen[0] + tema.examen[1] === 2 ? 'dos' : 'tres'} de cada parada, con nota sobre 10.` : 'Se abre con al menos una estrella en la prueba de cada parada.'}
           </span>
-          {mejor !== undefined && <span className="mt-1 text-sm font-semibold text-amber-200">Tu mejor nota: {notaExamen(mejor)}</span>}
+          {mejor !== undefined && <span className="mt-1 text-sm font-semibold text-amber-200">Tu mejor nota: {notaExamen(tema, mejor)}</span>}
         </span>
       </motion.a>
     </>

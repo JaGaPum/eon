@@ -3,15 +3,11 @@
 import { useState, type ReactNode } from 'react'
 import { motion } from 'motion/react'
 import { useAvance } from '../lib/progreso'
-import { RUTA_TEMA1 } from '../contenido/catalogo'
-import { BLOQUES } from '../contenido/tema1'
-import { BANCOS } from '../contenido/preguntas'
 import { CampoRespuesta, esCorrecta, escribirRespuesta, type Pregunta } from './Respuesta'
+import { TextoMat } from './mat'
+import { estacionesDe, preguntasExamen, useTema, type Tema } from './tema'
 
 export const PREGUNTAS_PRUEBA = 8
-export const PREGUNTAS_EXAMEN = 16
-const ESTACIONES = BLOQUES.flatMap((b) => b.estaciones)
-const nombreDe = (parada: string) => ESTACIONES.find((e) => e.id === parada)?.titulo ?? parada
 
 /** Estrellas que da una prueba: una desde el 60 %, dos desde el 85 % y tres con todo bien. */
 export function estrellas(aciertos: number | undefined, total: number): number {
@@ -21,8 +17,9 @@ export function estrellas(aciertos: number | undefined, total: number): number {
 }
 
 /** El examen final se abre con al menos una estrella en todas las paradas. */
-export const examenAbierto = (pruebas: Record<string, number>) => ESTACIONES.every((e) => estrellas(pruebas[e.id], PREGUNTAS_PRUEBA) > 0)
-export const notaExamen = (aciertos: number) => Math.round((aciertos / PREGUNTAS_EXAMEN) * 100) / 10
+export const examenAbierto = (tema: Tema, pruebas: Record<string, number>) =>
+  estacionesDe(tema).every((e) => estrellas(pruebas[tema.prefijo + e.id], PREGUNTAS_PRUEBA) > 0)
+export const notaExamen = (tema: Tema, aciertos: number) => Math.round((aciertos / preguntasExamen(tema)) * 100) / 10
 
 export function Estrellas({ n, grande }: { n: number; grande?: boolean }) {
   return (
@@ -57,10 +54,15 @@ function barajar<T>(lista: T[]): T[] {
   return copia
 }
 
-/** Preguntas de una parada: unas de las hojas de clase y otras nuevas, para que no valga memorizar. */
-function elegir(parada: string, deClase: number, nuevas: number): Item[] {
-  const banco = BANCOS[parada]
-  return [...barajar(banco.clase).slice(0, deClase), ...Array.from({ length: nuevas }, banco.generar)].map((q) => ({ q, parada }))
+/**
+ * Preguntas de una parada: unas de las hojas de clase y otras nuevas, para que no valga memorizar. En el examen se
+ * cogen primero las de la autoevaluación del libro, si la parada las tiene.
+ */
+function elegir(tema: Tema, parada: string, deClase: number, nuevas: number, examen = false): Item[] {
+  const banco = tema.bancos[parada]
+  const preferidas = examen && banco.examen ? barajar(banco.examen) : []
+  const resto = barajar(banco.clase.filter((q) => !preferidas.includes(q)))
+  return [...[...preferidas, ...resto].slice(0, deClase), ...Array.from({ length: nuevas }, banco.generar)].map((q) => ({ q, parada }))
 }
 
 interface PropsCuestionario {
@@ -74,6 +76,8 @@ interface PropsCuestionario {
 }
 
 function Cuestionario({ crear, portada, alTerminar, resultado, conParada }: PropsCuestionario) {
+  const tema = useTema()
+  const nombreDe = (parada: string) => estacionesDe(tema).find((e) => e.id === parada)?.titulo ?? parada
   const [items, setItems] = useState<Item[] | null>(null)
   const [i, setI] = useState(0)
 
@@ -144,10 +148,10 @@ function Cuestionario({ crear, portada, alTerminar, resultado, conParada }: Prop
             </p>
             <div className="mt-1 overflow-x-auto">{it.q.enunciado}</div>
             <p className="mt-2">
-              Tu respuesta: <b>{escribirRespuesta(it.q, it.resp ?? '')}</b>
+              Tu respuesta: <b>{<TextoMat s={escribirRespuesta(it.q, it.resp ?? '')} />}</b>
               {!bien(it) && (
                 <>
-                  {' · '}Correcta: <b>{escribirRespuesta(it.q, it.q.correcta)}</b>
+                  {' · '}Correcta: <b>{<TextoMat s={escribirRespuesta(it.q, it.q.correcta)} />}</b>
                 </>
               )}
             </p>
@@ -161,7 +165,7 @@ function Cuestionario({ crear, portada, alTerminar, resultado, conParada }: Prop
                     </li>
                   ))}
                 </ul>
-                <a className="mt-2 inline-block font-semibold text-indigo-700 underline" href={`${RUTA_TEMA1}/${it.parada}/desmenuzar`}>
+                <a className="mt-2 inline-block font-semibold text-indigo-700 underline" href={`${tema.ruta}/${it.parada}/desmenuzar`}>
                   Repasarlo en Desmenuzar →
                 </a>
               </details>
@@ -175,15 +179,16 @@ function Cuestionario({ crear, portada, alTerminar, resultado, conParada }: Prop
 
 /** Prueba de una parada: ocho preguntas y hasta tres estrellas. */
 export function Prueba({ parada }: { parada: string }) {
+  const tema = useTema()
   const { progreso, marcar } = useAvance()
-  const mejor = progreso.pruebas[parada]
+  const mejor = progreso.pruebas[tema.prefijo + parada]
 
   return (
     <section className="space-y-4">
       <h2 className="text-xl font-bold">Prueba de la parada</h2>
       <Cuestionario
-        crear={() => barajar(elegir(parada, PREGUNTAS_PRUEBA / 2, PREGUNTAS_PRUEBA / 2))}
-        alTerminar={(aciertos) => marcar(parada, aciertos)}
+        crear={() => barajar(elegir(tema, parada, PREGUNTAS_PRUEBA / 2, PREGUNTAS_PRUEBA / 2))}
+        alTerminar={(aciertos) => marcar(tema.prefijo + parada, aciertos)}
         portada={
           <>
             <p className="text-lg">
@@ -219,13 +224,17 @@ export function Prueba({ parada }: { parada: string }) {
 
 /** Examen final de la lección: dos preguntas de cada parada y nota sobre 10. */
 export function Examen() {
+  const tema = useTema()
+  const ESTACIONES = estacionesDe(tema)
+  const PREGUNTAS_EXAMEN = preguntasExamen(tema)
+  const RUTA = tema.ruta
   const { progreso, marcar } = useAvance()
-  const abierto = examenAbierto(progreso.pruebas)
-  const mejor = progreso.pruebas.examen
+  const abierto = examenAbierto(tema, progreso.pruebas)
+  const mejor = progreso.pruebas[tema.prefijo + 'examen']
 
   return (
     <section className="space-y-4">
-      <a href={RUTA_TEMA1} className="font-semibold text-indigo-700">
+      <a href={RUTA} className="font-semibold text-indigo-700">
         ← Mapa del tema
       </a>
       <h1 className="text-3xl font-bold">Misión final</h1>
@@ -233,9 +242,9 @@ export function Examen() {
         <>
           <p className="text-lg">La misión final se abre cuando tengas al menos una estrella en la prueba de cada parada. Te faltan estas:</p>
           <ul className="space-y-2">
-            {ESTACIONES.filter((e) => estrellas(progreso.pruebas[e.id], PREGUNTAS_PRUEBA) === 0).map((e) => (
+            {ESTACIONES.filter((e) => estrellas(progreso.pruebas[tema.prefijo + e.id], PREGUNTAS_PRUEBA) === 0).map((e) => (
               <li key={e.id}>
-                <a className="btn" href={`${RUTA_TEMA1}/${e.id}/prueba`}>
+                <a className="btn" href={`${RUTA}/${e.id}/prueba`}>
                   {e.num}. {e.titulo} →
                 </a>
               </li>
@@ -245,20 +254,20 @@ export function Examen() {
       ) : (
         <Cuestionario
           conParada
-          crear={() => ESTACIONES.flatMap((e) => elegir(e.id, 1, 1))}
-          alTerminar={(aciertos) => marcar('examen', aciertos)}
+          crear={() => ESTACIONES.flatMap((e) => elegir(tema, e.id, tema.examen[0], tema.examen[1], true))}
+          alTerminar={(aciertos) => marcar(tema.prefijo + 'examen', aciertos)}
           portada={
             <>
               <p className="text-lg">
-                El examen de todo el tema: {PREGUNTAS_EXAMEN} preguntas, dos de cada parada, sin pistas y con un intento cada una. Al final verás tu nota sobre 10 y qué paradas conviene repasar.
+                El examen de todo el tema: {PREGUNTAS_EXAMEN} preguntas, {tema.examen[0] + tema.examen[1] === 2 ? 'dos' : 'tres'} de cada parada, sin pistas y con un intento cada una. Al final verás tu nota sobre 10 y qué paradas conviene repasar.
               </p>
               <p className="text-lg">
-                Tu mejor nota: <b>{mejor === undefined ? 'todavía no lo has hecho' : notaExamen(mejor)}</b>
+                Tu mejor nota: <b>{mejor === undefined ? 'todavía no lo has hecho' : notaExamen(tema, mejor)}</b>
               </p>
             </>
           }
           resultado={(aciertos, items) => {
-            const nota = notaExamen(aciertos)
+            const nota = notaExamen(tema, aciertos)
             return (
               <>
                 <div className="flex flex-col items-center gap-2 rounded-2xl bg-slate-900 p-6 text-center text-white">
@@ -279,7 +288,7 @@ export function Examen() {
                     return (
                       <a
                         key={e.id}
-                        href={`${RUTA_TEMA1}/${e.id}/entender`}
+                        href={`${RUTA}/${e.id}/entender`}
                         className={`flex items-center justify-between rounded-xl border px-4 py-2 font-semibold ${ok === suyas.length ? 'border-green-300 bg-green-50' : 'border-amber-300 bg-amber-50'}`}
                       >
                         <span>
