@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { AnimatePresence, motion } from 'motion/react'
 import { useAvance } from '../lib/progreso'
 import { estrellas } from '../componentes/Prueba'
+import { esVogal, ondeTil, ponTil, senTil } from '../lib/til'
 
 export function barallar<T>(xs: readonly T[]): T[] {
   const a = [...xs]
@@ -143,14 +144,29 @@ const TEXTOS = {
 }
 
 type Idioma = keyof typeof TEXTOS
-const ContextoIdioma = createContext<{ idioma: Idioma; falar?: string }>({ idioma: 'gl' })
+type Modos = Record<(typeof MODOS_PRIMARIA)[number], string>
+const ContextoIdioma = createContext<{ idioma: Idioma; falar?: string; guia?: 'estrela' | 'cohete'; modos?: Modos }>({ idioma: 'gl' })
 
 /**
  * Idioma de la interfaz y, para las unidades de idiomas, la lengua en que se leen en voz alta las palabras
  * (por ejemplo «fr-FR»).
  */
-export function IdiomaUnidade({ idioma, falar, children }: { idioma: Idioma; falar?: string; children: ReactNode }) {
-  return <ContextoIdioma.Provider value={{ idioma, falar }}>{children}</ContextoIdioma.Provider>
+export function IdiomaUnidade({
+  idioma,
+  falar,
+  guia,
+  modos,
+  children,
+}: {
+  idioma: Idioma
+  falar?: string
+  /** Quen guía: por defecto Estrela en galego (Olivia) e o cohete en castelán (Mateo). */
+  guia?: 'estrela' | 'cohete'
+  /** Nomes das pestanas, se non valen os de partida. */
+  modos?: Modos
+  children: ReactNode
+}) {
+  return <ContextoIdioma.Provider value={{ idioma, falar, guia, modos }}>{children}</ContextoIdioma.Provider>
 }
 
 const useT = () => TEXTOS[useContext(ContextoIdioma).idioma]
@@ -251,11 +267,11 @@ export function Cohete({ tam = 56 }: { tam?: number }) {
 
 /** Lo que dice la guía, en un bocadillo. */
 export function Burbulla({ children, ton = 'normal' }: { children: ReactNode; ton?: 'normal' | 'ben' | 'mal' }) {
-  const { idioma } = useContext(ContextoIdioma)
+  const { idioma, guia } = useContext(ContextoIdioma)
   const cor = ton === 'ben' ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : ton === 'mal' ? 'border-amber-300 bg-amber-50 text-amber-900' : 'border-violet-200 bg-violet-50 text-violet-950'
   return (
     <div className="flex items-start gap-2">
-      {idioma === 'gl' ? <Estrela /> : <Cohete />}
+      {(guia ?? (idioma === 'gl' ? 'estrela' : 'cohete')) === 'estrela' ? <Estrela /> : <Cohete />}
       <motion.div
         key={String(children)}
         initial={{ opacity: 0, scale: 0.96 }}
@@ -276,6 +292,7 @@ export const MODOS_PRIMARIA = ['descubre', 'xoga', 'proba'] as const
 /** Armazón de una parada: volver al mapa, título y los tres modos, que siguen montados al cambiar. */
 export function ParadaPrimaria({ ruta, titulo, modo, paneis }: { ruta: string; titulo: ReactNode; modo?: string; paneis: Record<(typeof MODOS_PRIMARIA)[number], ReactNode> }) {
   const t = useT()
+  const { modos } = useContext(ContextoIdioma)
   const activo = MODOS_PRIMARIA.find((m) => m === modo) ?? 'descubre'
   const mapa = ruta.slice(0, ruta.lastIndexOf('/'))
   return (
@@ -291,7 +308,7 @@ export function ParadaPrimaria({ ruta, titulo, modo, paneis }: { ruta: string; t
             href={`${ruta}/${m}`}
             className={`rounded-xl px-2 py-3 text-center text-base font-bold sm:text-lg ${m === activo ? 'bg-white text-violet-700 shadow-sm' : 'text-violet-900/70'}`}
           >
-            {t.modos[m]}
+            {(modos ?? t.modos)[m]}
           </a>
         ))}
       </nav>
@@ -850,6 +867,8 @@ export type Pregunta =
   | { tipo: 'elixe'; texto: ReactNode; correcta: string; outras: string[]; explica: ReactNode; visual?: ReactNode; oir?: string }
   | { tipo: 'toca'; texto: ReactNode; correcta: string; Debuxo: Debuxo; nomes: Record<string, string>; explica: ReactNode; oir?: string }
   | { tipo: 'escribe'; texto: ReactNode; respostas: string[]; explica?: ReactNode; oir?: string }
+  /** Poñer o til: tócase a vogal que o leva ou «Non leva til». `respostas`: as formas válidas. */
+  | { tipo: 'til'; texto: ReactNode; palabra: string; respostas: string[]; explica?: ReactNode; oir?: string }
 
 export const PREGUNTAS_PROBA = 8
 
@@ -898,7 +917,7 @@ export function Proba({
 
   function responder(r: string, c?: Correccion) {
     if (resposta !== null) return
-    const nota = c ?? (p.tipo !== 'escribe' && r === p.correcta ? 'ben' : 'mal')
+    const nota = c ?? ((p.tipo === 'elixe' || p.tipo === 'toca') && r === p.correcta ? 'ben' : 'mal')
     setResposta(r)
     setCorreccion(nota)
     if (nota === 'ben') setAcertos(acertos + 1)
@@ -1029,10 +1048,19 @@ export function Proba({
         </div>
       )}
       {p.tipo === 'escribe' && <Campo key={k} desactivado={resposta !== null} onEnviar={(texto) => responder(texto, corrixir(texto, p.respostas))} />}
+      {p.tipo === 'til' && (
+        <ElixeTil key={k} palabra={p.palabra} bloqueada={resposta !== null} correctas={resposta !== null ? p.respostas : undefined} enviar={(f) => responder(f, p.respostas.includes(f) ? 'ben' : 'mal')} />
+      )}
       {resposta !== null && (
         <>
           <Burbulla ton={ben ? 'ben' : 'mal'}>
-            {p.tipo === 'escribe' ? (
+            {p.tipo === 'til' ? (
+              <>
+                {ben ? t.ben : t.non}
+                {!ben && <>Escríbese <b>{p.respostas.join(' ou ')}</b>. </>}
+                {p.explica && <span className="font-medium">{p.explica}</span>}
+              </>
+            ) : p.tipo === 'escribe' ? (
               <>
                 {ben ? t.ben : correccion === 'acentos' ? t.acentos(solucion!) : `${t.non}${t.solucion(solucion!)}`}
                 {solucion && <Son texto={solucion} />}
@@ -1061,5 +1089,51 @@ export function Estrelas({ n }: { n: number }) {
       <span className="text-amber-400">{'★'.repeat(n)}</span>
       <span className="text-slate-300">{'★'.repeat(3 - n)}</span>
     </span>
+  )
+}
+
+/**
+ * Unha palabra letra a letra: tócase a vogal que leva o til (outra vez para quitalo) ou «Non leva til».
+ * Con `correctas`, ensina en verde a forma boa.
+ */
+export function ElixeTil({ palabra, enviar, bloqueada, correctas }: { palabra: string; enviar: (forma: string) => void; bloqueada?: boolean; correctas?: string[] }) {
+  const base = senTil(palabra)
+  const [i, setI] = useState(-2)
+  const forma = i >= -1 ? ponTil(base, i) : null
+  const boa = correctas?.[0]
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-end justify-center gap-1" lang="gl">
+        {base.split('').map((c, k) => {
+          const vogal = esVogal(c)
+          const posto = i === k
+          const enBoa = boa !== undefined && ondeTil(boa) === k
+          return (
+            <button
+              key={k}
+              type="button"
+              disabled={!vogal || bloqueada}
+              onClick={() => setI(posto ? -2 : k)}
+              className={`h-16 min-w-11 rounded-xl border-2 px-1 text-4xl font-bold transition ${
+                enBoa ? 'border-emerald-500 bg-emerald-100 text-emerald-800' : posto ? 'border-violet-600 bg-violet-600 text-white' : vogal ? 'cursor-pointer border-violet-200 bg-white text-slate-800 hover:bg-violet-50' : 'border-transparent bg-transparent text-slate-500'
+              }`}
+              aria-label={vogal ? `Til no ${c}` : c}
+            >
+              {posto || enBoa ? ponTil(c, 0) : c}
+            </button>
+          )
+        })}
+      </div>
+      {!bloqueada && (
+        <div className="flex flex-wrap justify-center gap-2">
+          <button type="button" className={`btn min-h-12 text-lg ${i === -1 ? 'btn-activo' : ''}`} onClick={() => setI(i === -1 ? -2 : -1)}>
+            Non leva til
+          </button>
+          <button type="button" className="btn btn-primario min-h-12 border-violet-600 bg-violet-600 text-lg hover:bg-violet-700" disabled={!forma} onClick={() => forma && enviar(forma)}>
+            Comprobar{forma ? `: ${forma}` : ''}
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

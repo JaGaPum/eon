@@ -23,6 +23,7 @@ import Productos from './paradas/Productos'
 import Combinadas from './paradas/Combinadas'
 import Paisaxes, { avancePaisaxes } from './primaria/paisaxes/Unidade'
 import Unite1, { avanceUnite1 } from './idiomas/frances/Unite'
+import Galego1, { avanceGalego1 } from './idiomas/galego/Unidade'
 
 // Paradas del Tema 1 de Matemáticas de 2º.
 const PARADAS: Record<string, ComponentType<PropsParada>> = {
@@ -48,6 +49,7 @@ const TEMAS: Record<string, { tema: Tema; paradas: Record<string, ComponentType<
 const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; modo?: string; progreso: Progreso }>; avance: (p: Progreso) => string }> = {
   paisaxes: { Compoñente: Paisaxes, avance: avancePaisaxes },
   unite1: { Compoñente: Unite1, avance: avanceUnite1 },
+  proba1: { Compoñente: Galego1, avance: avanceGalego1 },
 }
 
 /** El último alumno elegido en la pantalla de inicio, recordado en este dispositivo. */

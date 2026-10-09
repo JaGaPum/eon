@@ -97,7 +97,12 @@ export const CURSOS: Curso[] = [
       },
       sinLecciones('fisica-quimica', 'Física e Química', '⚛️'),
       sinLecciones('xeografia-historia', 'Xeografía e Historia', '⏳'),
-      sinLecciones('lingua-galega', 'Lingua Galega e Literatura', '📜'),
+      {
+        id: 'lingua-galega',
+        nombre: 'Lingua Galega e Literatura',
+        icono: '📜',
+        lecciones: [{ id: 'proba1', titulo: 'Proba de aula 1 · Textos e acentuación', resumen: 'Descrición, tema e título, resumo, definir, regras de acentuación e diacríticos.' }],
+      },
       sinLecciones('lengua-castellana', 'Lengua Castellana y Literatura', '✒️'),
       sinLecciones('ingles', 'Inglés', '🛰️'),
       {
