@@ -1,6 +1,8 @@
 // Menús de entrada: alumno → curso → materia → lección. El aspecto es el de un viaje por el espacio y el tiempo.
 import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
+import { Calendario } from './componentes/Calendario'
+import { TAREFAS, diasHasta, faltan } from './contenido/tarefas'
 import { ALUMNOS, CURSOS, cursosDe, type Alumno, type Curso, type Materia } from './contenido/catalogo'
 
 export function Logo({ grande }: { grande?: boolean }) {
@@ -134,17 +136,27 @@ export function Cursos({ alumno }: { alumno: Alumno }) {
   )
 }
 
-export function Materias({ curso }: { curso: Curso }) {
+export function Materias({ curso, alumno }: { curso: Curso; alumno?: Alumno }) {
+  // Pablo va a la misma clase que Mateo: ve las tareas del alumno cuyos cursos comparte.
+  const tarefas = (alumno && TAREFAS[cursosDe(alumno)]) ?? []
+  // En la tarjeta de cada materia se avisa del próximo examen si es en las dos próximas semanas.
+  const aviso = (id: string) => {
+    const t = tarefas.filter((x) => x.materia === id && x.tipo === 'examen' && diasHasta(x.fecha) >= 0 && diasHasta(x.fecha) <= 14).sort((a, b) => a.fecha.localeCompare(b.fecha))[0]
+    return t && `📝 Examen: ${faltan(t.fecha).toLowerCase()}`
+  }
   return (
     <>
       <h1 className="text-3xl font-bold text-white">{curso.nombre}</h1>
       <p className="mt-1 text-indigo-200">{curso.era}. Cada materia es un mundo: elige a cuál viajamos.</p>
+      {tarefas.length > 0 && <Calendario tarefas={tarefas} curso={curso} />}
+      {tarefas.length > 0 && <h2 className="mt-8 text-sm font-bold tracking-widest text-indigo-300 uppercase">Materias</h2>}
       <Rejilla
         tarjetas={curso.materias.map((m) => ({
           href: m.lecciones.length ? `#/${curso.id}/${m.id}` : undefined,
           icono: m.icono,
           titulo: m.nombre,
           detalle: m.lecciones.length === 0 ? 'Aún sin explorar' : m.lecciones.length === 1 ? '1 lección' : `${m.lecciones.length} lecciones`,
+          estado: aviso(m.id),
         }))}
       />
     </>

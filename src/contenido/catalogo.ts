@@ -104,7 +104,12 @@ export const CURSOS: Curso[] = [
         lecciones: [{ id: 'proba1', titulo: 'Proba de aula 1 · Textos e acentuación', resumen: 'Descrición, tema e título, resumo, definir, regras de acentuación e diacríticos.' }],
       },
       sinLecciones('lengua-castellana', 'Lengua Castellana y Literatura', '✒️'),
-      sinLecciones('ingles', 'Inglés', '🛰️'),
+      {
+        id: 'ingles',
+        nombre: 'Inglés',
+        icono: '🛰️',
+        lecciones: [{ id: 'module1', titulo: 'Module 1 · First exam', resumen: 'Subject/object questions, How much/many…, There is/are and quantifiers, Present Simple/Continuous.' }],
+      },
       {
         id: 'frances',
         nombre: 'Francés',

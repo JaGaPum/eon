@@ -24,6 +24,7 @@ import Combinadas from './paradas/Combinadas'
 import Paisaxes, { avancePaisaxes } from './primaria/paisaxes/Unidade'
 import Unite1, { avanceUnite1 } from './idiomas/frances/Unite'
 import Galego1, { avanceGalego1 } from './idiomas/galego/Unidade'
+import Module1, { avanceModule1 } from './idiomas/ingles/Module1'
 
 // Paradas del Tema 1 de Matemáticas de 2º.
 const PARADAS: Record<string, ComponentType<PropsParada>> = {
@@ -50,6 +51,7 @@ const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; m
   paisaxes: { Compoñente: Paisaxes, avance: avancePaisaxes },
   unite1: { Compoñente: Unite1, avance: avanceUnite1 },
   proba1: { Compoñente: Galego1, avance: avanceGalego1 },
+  module1: { Compoñente: Module1, avance: avanceModule1 },
 }
 
 /** El último alumno elegido en la pantalla de inicio, recordado en este dispositivo. */
@@ -162,7 +164,7 @@ export default function App() {
         ) : materia && curso ? (
           <Lecciones curso={curso} materia={materia} avance={avance} />
         ) : curso ? (
-          <Materias curso={curso} />
+          <Materias curso={curso} alumno={alumno} />
         ) : alumno ? (
           <Cursos alumno={alumno} />
         ) : (

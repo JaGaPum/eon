@@ -188,6 +188,8 @@ export function fala(texto: string, lingua = 'fr-FR') {
 
 /** La lengua de lectura de la unidad, o nada si la unidad no lee en voz alta. */
 export const useFalar = () => useContext(ContextoIdioma).falar
+/** Código corto de la lengua que se estudia («fr», «en»), para el atributo lang. */
+const useLang = () => useFalar()?.slice(0, 2) ?? 'fr'
 
 /** Botón 🔊 que lee el texto en la lengua de la unidad. */
 export function Son({ texto, grande }: { texto: string; grande?: boolean }) {
@@ -212,9 +214,10 @@ export function Son({ texto, grande }: { texto: string; grande?: boolean }) {
 
 /** Una palabra o frase en la lengua que se estudia, con su botón para oírla. */
 export function Fr({ children }: { children: string }) {
+  const lang = useLang()
   return (
     <span className="whitespace-nowrap">
-      <b className="text-violet-800" lang="fr">
+      <b className="text-violet-800" lang={lang}>
         {children}
       </b>
       <Son texto={children} />
@@ -712,6 +715,7 @@ export function VerdadeiroFalso({ frases, acabar }: { frases: { texto: string; c
 /** Ordena: as palabras dunha frase, barulladas, hai que tocalas na orde boa. */
 export function Ordena({ frases, acabar }: { frases: { palabras: string[]; traducion?: string }[]; acabar: () => void }) {
   const t = useT()
+  const lang = useLang()
   const lingua = useFalar()
   const orde = useMemo(() => barallar(frases), [frases])
   const [k, setK] = useState(0)
@@ -745,7 +749,7 @@ export function Ordena({ frases, acabar }: { frases: { palabras: string[]; tradu
       </p>
       <div className="flex min-h-16 flex-wrap items-center gap-2 rounded-2xl border-2 border-dashed border-violet-300 bg-white p-3">
         {postas.map((i, n) => (
-          <button key={n} onClick={() => setPostas(postas.filter((_, m) => m !== n))} className="min-h-11 cursor-pointer rounded-xl bg-violet-600 px-3 text-lg font-bold text-white" lang="fr">
+          <button key={n} onClick={() => setPostas(postas.filter((_, m) => m !== n))} className="min-h-11 cursor-pointer rounded-xl bg-violet-600 px-3 text-lg font-bold text-white" lang={lang}>
             {f.palabras[i]}
           </button>
         ))}
@@ -757,7 +761,7 @@ export function Ordena({ frases, acabar }: { frases: { palabras: string[]; tradu
             disabled={postas.includes(i)}
             onClick={() => setPostas([...postas, i])}
             className="min-h-12 cursor-pointer rounded-xl border-2 border-violet-200 bg-white px-4 text-lg font-bold text-slate-800 hover:bg-violet-50 disabled:opacity-25"
-            lang="fr"
+            lang={lang}
           >
             {p}
           </button>
@@ -808,6 +812,7 @@ const TECLAS = ['é', 'è', 'ê', 'à', 'â', 'ç', 'ô', 'û', 'î', 'œ', "'"]
 /** Campo para escribir en francés, con teclas para las letras que no están en el teclado español. */
 export function Campo({ onEnviar, desactivado }: { onEnviar: (texto: string) => void; desactivado?: boolean }) {
   const t = useT()
+  const lang = useLang()
   const [texto, setTexto] = useState('')
   const ref = useRef<HTMLInputElement>(null)
   function tecla(c: string) {
@@ -840,14 +845,14 @@ export function Campo({ onEnviar, desactivado }: { onEnviar: (texto: string) => 
           autoCorrect="off"
           autoComplete="off"
           spellCheck={false}
-          lang="fr"
+          lang={lang}
           className="min-h-14 flex-1 rounded-2xl border-2 border-violet-200 bg-white px-4 text-xl font-semibold text-slate-800 outline-none focus:border-violet-500 disabled:bg-slate-50"
         />
         <button className="btn btn-primario min-h-14 border-violet-600 bg-violet-600 px-5 text-lg hover:bg-violet-700" disabled={desactivado || !texto.trim()}>
           {t.comprobar}
         </button>
       </div>
-      {!desactivado && (
+      {!desactivado && lang === 'fr' && (
         <div className="flex flex-wrap gap-1.5">
           {TECLAS.map((c) => (
             <button key={c} type="button" onClick={() => tecla(c)} className="h-10 min-w-10 cursor-pointer rounded-lg border border-slate-300 bg-white px-2 text-lg font-semibold text-slate-700 hover:bg-violet-50">
