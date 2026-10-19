@@ -13,9 +13,9 @@ interface Metier {
 
 export const METIERS: Metier[] = [
   { m: 'le dentiste', f: 'la dentiste', es: 'el / la dentista', icono: '🦷', grupo: 'igual' },
-  { m: 'le photographe', f: 'la photographe', es: 'el fotógrafo / la fotógrafa', icono: '📷', grupo: 'igual' },
   { m: 'le journaliste', f: 'la journaliste', es: 'el / la periodista', icono: '📰', grupo: 'igual' },
   { m: 'le vétérinaire', f: 'la vétérinaire', es: 'el veterinario / la veterinaria', icono: '🐶', grupo: 'igual' },
+  { m: 'le boulanger', f: 'la boulangère', es: 'el panadero / la panadera', icono: '🥖', grupo: 'ere' },
   { m: "l'infirmier", f: "l'infirmière", es: 'el enfermero / la enfermera', icono: '💉', grupo: 'ere' },
   { m: 'le cuisinier', f: 'la cuisinière', es: 'el cocinero / la cocinera', icono: '🍳', grupo: 'ere' },
   { m: "l'informaticien", f: "l'informaticienne", es: 'el informático / la informática', icono: '💻', grupo: 'enne' },
@@ -26,7 +26,6 @@ export const METIERS: Metier[] = [
   { m: 'le pompier', es: 'el bombero', icono: '🚒', grupo: 'masc' },
   { m: 'le plombier', es: 'el fontanero', icono: '🔧', grupo: 'masc' },
   { m: 'le médecin', es: 'el médico', icono: '🩺', grupo: 'masc' },
-  { m: 'le professeur', es: 'el profesor', icono: '🏫', grupo: 'masc' },
 ]
 
 const GRUPOS: Record<Metier['grupo'], string> = {
@@ -221,7 +220,7 @@ export const PREGUNTAS: Pregunta[] = [
   elixe('¿Cuál es el femenino de «l’acteur»?', "l'actrice", ["l'acteuse", "l'acteure", "l'actrisse"], <>‑teur → ‑trice: l'actrice.</>),
   elixe('¿Cuál es el femenino de «le pharmacien»?', 'la pharmacienne', ['la pharmaciène', 'la pharmacienné', 'la pharmaciere'], <>‑en → ‑enne: la pharmacienne.</>),
   elixe('¿Cuál es el femenino de «le cuisinier»?', 'la cuisinière', ['la cuisiniere', 'la cuisinienne', 'la cuisinieuse'], <>‑er → ‑ère, con acento grave: la cuisinière.</>),
-  elixe('¿Cuál de estas profesiones solo se usa en masculino (según tu profesora)?', 'le pompier', ['le dentiste', 'le coiffeur', "l'infirmier"], <>Pompier, plombier, médecin y professeur van solo en masculino.</>),
+  elixe('¿Cuál de estas profesiones solo se usa en masculino (según tu profesora)?', 'le pompier', ['le dentiste', 'le coiffeur', "l'infirmier"], <>Pompier, plombier y médecin van solo en masculino.</>),
   elixe('¿Cuál de estas no cambia en femenino?', 'le journaliste', ['le serveur', 'le pharmacien', 'le cuisinier'], <>Journaliste es igual: le journaliste, la journaliste.</>),
 ]
 

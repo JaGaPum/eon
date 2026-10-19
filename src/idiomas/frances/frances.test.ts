@@ -58,3 +58,11 @@ describe('demostrativos', () => {
     expect(demostrativo('des voitures')).toBe('ces')
   })
 })
+
+describe('mettre et acheter', () => {
+  it('se conjugan como en el libro', async () => {
+    const { conxuga } = await import('./mettre')
+    expect(['je', 'tu', 'il', 'nous', 'vous', 'ils'].map((p) => conxuga('mettre', p as never))).toEqual(['je mets', 'tu mets', 'il met', 'nous mettons', 'vous mettez', 'ils mettent'])
+    expect(['je', 'tu', 'il', 'nous', 'vous', 'ils'].map((p) => conxuga('acheter', p as never))).toEqual(["j'achète", 'tu achètes', 'il achète', 'nous achetons', 'vous achetez', 'ils achètent'])
+  })
+})

@@ -13,8 +13,6 @@ export const QUESTIONS: Q[] = [
   { fr: "Qu'est-ce que tu fais ?", es: '¿Qué haces?', resposta: 'Je dessine.', respostaEs: 'Dibujo.' },
   { fr: "Comment est-ce que tu t'appelles ?", es: '¿Cómo te llamas?', resposta: "Je m'appelle Mateo.", respostaEs: 'Me llamo Mateo.' },
   { fr: "Où est-ce que tu habites ?", es: '¿Dónde vives?', resposta: "J'habite en Galice.", respostaEs: 'Vivo en Galicia.' },
-  { fr: 'Qui est ce garçon ?', es: '¿Quién es este chico?', resposta: "C'est mon frère.", respostaEs: 'Es mi hermano.' },
-  { fr: 'Qui est cette fille ?', es: '¿Quién es esta chica?', resposta: "C'est ma cousine.", respostaEs: 'Es mi prima.' },
   { fr: 'Pourquoi est-ce que tu pleures ?', es: '¿Por qué lloras?', resposta: 'Parce que je suis malade.', respostaEs: 'Porque estoy enfermo.' },
 ]
 
@@ -22,7 +20,6 @@ const INTERROGATIVOS: [string, string][] = [
   ["qu'est-ce que", 'qué'],
   ['comment', 'cómo'],
   ['où', 'dónde'],
-  ['qui', 'quién'],
   ['pourquoi', 'por qué'],
   ['parce que', 'porque (para responder)'],
 ]
@@ -94,22 +91,10 @@ const TARXETAS: Tarxeta[] = [
     ),
   },
   {
-    titulo: '¿Quién es este chico o esta chica?',
-    texto: (
-      <>
-        <Pregunta1 q={QUESTIONS[3]} />
-        <Pregunta1 q={QUESTIONS[4]} />
-        <p className="text-base text-slate-600">
-          💡 Con <i>qui est</i> no hace falta est-ce que. <i>Ce</i> va con masculino (ce garçon) y <i>cette</i> con femenino (cette fille).
-        </p>
-      </>
-    ),
-  },
-  {
     titulo: '¿Por qué? Porque…',
     texto: (
       <>
-        <Pregunta1 q={QUESTIONS[5]} />
+        <Pregunta1 q={QUESTIONS[3]} />
         <p>
           Se pregunta con {b('pourquoi')} y se responde con {b('parce que')}.
         </p>
@@ -157,11 +142,9 @@ const XOGOS: Xogo[] = [
 
 const SITUACIONS: Pregunta[] = [
   elixe('Quieres saber el nombre de alguien.', "Comment est-ce que tu t'appelles ?", ["Où est-ce que tu habites ?", "Qu'est-ce que tu fais ?", 'Pourquoi est-ce que tu pleures ?'], <>Comment = cómo: ¿cómo te llamas?</>),
-  elixe('Quieres saber dónde vive.', 'Où est-ce que tu habites ?', ["Comment est-ce que tu t'appelles ?", 'Qui est ce garçon ?', "Qu'est-ce que tu fais ?"], <>Où = dónde.</>),
-  elixe('Quieres saber qué está haciendo.', "Qu'est-ce que tu fais ?", ['Pourquoi est-ce que tu pleures ?', 'Où est-ce que tu habites ?', 'Qui est cette fille ?'], <>Qu'est-ce que = qué.</>),
-  elixe('Ves a un chico y quieres saber quién es.', 'Qui est ce garçon ?', ['Qui est cette fille ?', "Comment est-ce que tu t'appelles ?", 'Où est-ce que tu habites ?'], <>Qui = quién; ce garçon (masculino).</>),
-  elixe('Ves a una chica y quieres saber quién es.', 'Qui est cette fille ?', ['Qui est ce garçon ?', "Qu'est-ce que tu fais ?", 'Pourquoi est-ce que tu pleures ?'], <>Cette fille (femenino).</>),
-  elixe('Tu amigo está llorando y quieres saber el motivo.', 'Pourquoi est-ce que tu pleures ?', ["Qu'est-ce que tu fais ?", 'Où est-ce que tu habites ?', 'Qui est ce garçon ?'], <>Pourquoi = por qué. Se responde con parce que.</>),
+  elixe('Quieres saber dónde vive.', 'Où est-ce que tu habites ?', ["Comment est-ce que tu t'appelles ?", 'Pourquoi est-ce que tu pleures ?', "Qu'est-ce que tu fais ?"], <>Où = dónde.</>),
+  elixe('Quieres saber qué está haciendo.', "Qu'est-ce que tu fais ?", ['Pourquoi est-ce que tu pleures ?', 'Où est-ce que tu habites ?', "Comment est-ce que tu t'appelles ?"], <>Qu'est-ce que = qué.</>),
+  elixe('Tu amigo está llorando y quieres saber el motivo.', 'Pourquoi est-ce que tu pleures ?', ["Qu'est-ce que tu fais ?", 'Où est-ce que tu habites ?', "Comment est-ce que tu t'appelles ?"], <>Pourquoi = por qué. Se responde con parce que.</>),
 ]
 
 export const PREGUNTAS: Pregunta[] = [

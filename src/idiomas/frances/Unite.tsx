@@ -8,25 +8,39 @@ import Corps, { PREGUNTAS as P_CORPS } from './corps'
 import Demonstratifs, { PREGUNTAS as P_DEMONSTRATIFS } from './demonstratifs'
 import Famille, { PREGUNTAS as P_FAMILLE } from './famille'
 import Metiers, { PREGUNTAS as P_METIERS } from './metiers'
+import Mettre, { PREGUNTAS as P_METTRE } from './mettre'
 import Questions, { PREGUNTAS as P_QUESTIONS } from './questions'
 import Verbes, { PREGUNTAS as P_VERBES } from './verbes'
 
 export const RUTA_UNITE1 = '#/2eso/frances/unite1'
 
-const PARADAS: { id: string; titulo: string; resumen: string; Compoñente?: ComponentType<{ ruta: string; modo?: string }> }[] = [
-  { id: 'verbes', titulo: 'Les verbes en ‑er', resumen: 'Marcher y los verbos de la ficha. Cuidado con manger y nager.', Compoñente: Verbes },
-  { id: 'famille', titulo: 'La famille', resumen: 'Abuelos, padres, tíos, primos… y mon, ma, mes.', Compoñente: Famille },
-  { id: 'corps', titulo: 'Les parties du corps', resumen: 'La cabeza, la cara y el cuerpo, con su artículo.', Compoñente: Corps },
-  { id: 'metiers', titulo: 'Les métiers', resumen: 'Las profesiones y cómo se forma el femenino.', Compoñente: Metiers },
-  { id: 'questions', titulo: 'Poser des questions', resumen: 'Qu’est-ce que, comment, où, qui, pourquoi… parce que.', Compoñente: Questions },
-  { id: 'demonstratifs', titulo: 'Les démonstratifs', resumen: 'Ce, cet, cette, ces, con la ropa.', Compoñente: Demonstratifs },
+// `examen`: si entra en el examen, según lo que concretó la profesora en Classroom (19 de octubre). Lo demás queda
+// para repasar.
+const PARADAS: { id: string; titulo: string; resumen: string; examen: boolean; Compoñente?: ComponentType<{ ruta: string; modo?: string }> }[] = [
+  { id: 'questions', titulo: 'Poser des questions', resumen: 'Qu’est-ce que, comment, où, pourquoi… parce que.', examen: true, Compoñente: Questions },
+  { id: 'metiers', titulo: 'Les métiers', resumen: 'Las profesiones y cómo se forma el femenino.', examen: true, Compoñente: Metiers },
+  { id: 'mettre', titulo: 'Mettre et acheter', resumen: 'Los dos verbos de la página 15, con la ropa.', examen: true, Compoñente: Mettre },
+  {
+    id: 'demonstratifs',
+    titulo: 'Les vêtements et les démonstratifs',
+    resumen: 'La ropa con ce, cet, cette, ces (página 13).',
+    examen: true,
+    Compoñente: Demonstratifs,
+  },
+  { id: 'verbes', titulo: 'Les verbes en ‑er', resumen: 'Marcher y los verbos de la ficha. Cuidado con manger y nager.', examen: false, Compoñente: Verbes },
+  { id: 'famille', titulo: 'La famille', resumen: 'Abuelos, padres, tíos, primos… y mon, ma, mes.', examen: false, Compoñente: Famille },
+  { id: 'corps', titulo: 'Les parties du corps', resumen: 'La cabeza, la cara y el cuerpo, con su artículo.', examen: false, Compoñente: Corps },
 ]
 
-// El examen coge tres preguntas de cada parada: 18 en total, con nota sobre 10.
-const POR_PARADA = 3
-const BANCOS = [P_VERBES, P_FAMILLE, P_CORPS, P_METIERS, P_QUESTIONS, P_DEMONSTRATIFS]
+// El examen solo pregunta lo que entra: cinco preguntas de cada una de esas cuatro paradas.
+const POR_PARADA = 5
+const BANCOS = [P_QUESTIONS, P_METIERS, P_METTRE, P_DEMONSTRATIFS]
 export const PREGUNTAS_EXAME = POR_PARADA * BANCOS.length
 const xerarExame = (): Pregunta[] => barallar(BANCOS.flatMap((banco) => barallar(banco).slice(0, POR_PARADA)))
+// Para no mezclar notas: el examen de antes tenía otras preguntas y otro número.
+const EXAME = 'examen2'
+// Siguen importándose para el repaso aunque no entren en el examen.
+void [P_VERBES, P_FAMILLE, P_CORPS]
 
 const clave = (parada: string) => `frances1/${parada}`
 const feitas = PARADAS.filter((p) => p.Compoñente)
@@ -41,62 +55,75 @@ function Mapa({ progreso }: { progreso: Progreso }) {
   return (
     <>
       <h1 className="text-3xl font-bold text-white">Unité 1 · Francés</h1>
-      <p className="mt-1 text-indigo-200">Lo que entra en el primer examen. Cada palabra en francés tiene 🔊 para oírla.</p>
+      <p className="mt-1 text-indigo-200">Cada palabra en francés tiene 🔊 para oírla.</p>
       <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 font-bold text-amber-200">{avanceUnite1(progreso)}</p>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {PARADAS.map((p, i) => {
-          const n = estrellas(progreso.pruebas[clave(p.id)], PREGUNTAS_PROBA)
-          const dentro = (
-            <>
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-indigo-600 text-xl font-black text-white shadow-lg shadow-indigo-500/30">
-                {i + 1}
-              </span>
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="flex flex-wrap items-center justify-between gap-x-2">
-                  <b className="text-lg text-white" lang="fr">
-                    {p.titulo}
-                  </b>
-                  {p.Compoñente && (
-                    <span className="text-lg" role="img" aria-label={`${n} de 3 estrellas`}>
-                      <span className="text-amber-300">{'★'.repeat(n)}</span>
-                      <span className="text-white/20">{'★'.repeat(3 - n)}</span>
+      {[true, false].map((entra) => (
+        <section key={String(entra)}>
+          <h2 className="mt-8 mb-1 text-sm font-bold tracking-widest text-indigo-300 uppercase">
+            {entra ? 'Entra en el examen' : 'Repaso: ya no entra en el examen'}
+          </h2>
+          {!entra && <p className="mb-3 text-sm text-indigo-300">La profesora lo dio antes, pero no lo ha incluido en el examen.</p>}
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {PARADAS.filter((p) => p.examen === entra).map((p, i) => {
+              const n = estrellas(progreso.pruebas[clave(p.id)], PREGUNTAS_PROBA)
+              const dentro = (
+                <>
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-indigo-600 text-xl font-black text-white shadow-lg shadow-indigo-500/30">
+                    {PARADAS.indexOf(p) + 1}
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="flex flex-wrap items-center justify-between gap-x-2">
+                      <b className="text-lg text-white" lang="fr">
+                        {p.titulo}
+                      </b>
+                      {p.Compoñente && (
+                        <span className="text-lg" role="img" aria-label={`${n} de 3 estrellas`}>
+                          <span className="text-amber-300">{'★'.repeat(n)}</span>
+                          <span className="text-white/20">{'★'.repeat(3 - n)}</span>
+                        </span>
+                      )}
                     </span>
-                  )}
-                </span>
-                <span className="text-sm text-indigo-200">{p.resumen}</span>
-              </span>
-            </>
-          )
-          return p.Compoñente ? (
-            <motion.a
-              key={p.id}
-              href={`${RUTA_UNITE1}/${p.id}/descubre`}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              whileHover={{ y: -4 }}
-              className="cristal flex gap-4 border-indigo-300/50 p-4 hover:bg-white/[0.12]"
-            >
-              {dentro}
-            </motion.a>
-          ) : (
-            <div key={p.id} className="cristal flex gap-4 border-dashed p-4 opacity-55">
-              {dentro}
-            </div>
-          )
-        })}
-      </div>
+                    <span className="text-sm text-indigo-200">{p.resumen}</span>
+                  </span>
+                </>
+              )
+              return p.Compoñente ? (
+                <motion.a
+                  key={p.id}
+                  href={`${RUTA_UNITE1}/${p.id}/descubre`}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  whileHover={{ y: -4 }}
+                  className={`cristal flex gap-4 p-4 hover:bg-white/[0.12] ${entra ? 'border-amber-300/60' : 'border-indigo-300/30 opacity-80'}`}
+                >
+                  {dentro}
+                </motion.a>
+              ) : (
+                <div key={p.id} className="cristal flex gap-4 border-dashed p-4 opacity-55">
+                  {dentro}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      ))}
 
       <h2 className="mt-8 mb-3 text-sm font-bold tracking-widest text-indigo-300 uppercase">Misión final</h2>
       <motion.a href={`${RUTA_UNITE1}/examen`} whileHover={{ y: -4 }} className="cristal flex items-center gap-4 border-amber-300/70 p-4 hover:bg-white/[0.12]">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-orange-600 text-2xl shadow-lg shadow-orange-500/30" aria-hidden="true">
+        <span
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-orange-600 text-2xl shadow-lg shadow-orange-500/30"
+          aria-hidden="true"
+        >
           🚀
         </span>
         <span className="flex flex-col">
           <b className="text-lg text-white">Examen de la unidad</b>
-          <span className="text-sm text-indigo-200">{PREGUNTAS_EXAME} preguntas, tres de cada parada, con nota sobre 10.</span>
-          {progreso.pruebas[clave('examen')] !== undefined && (
-            <span className="mt-1 text-sm font-semibold text-amber-200">Tu mejor nota: {String(notaSobre10(progreso.pruebas[clave('examen')], PREGUNTAS_EXAME)).replace('.', ',')}</span>
+          <span className="text-sm text-indigo-200">{PREGUNTAS_EXAME} preguntas de lo que entra, cinco de cada parada, con nota sobre 10.</span>
+          {progreso.pruebas[clave(EXAME)] !== undefined && (
+            <span className="mt-1 text-sm font-semibold text-amber-200">
+              Tu mejor nota: {String(notaSobre10(progreso.pruebas[clave(EXAME)], PREGUNTAS_EXAME)).replace('.', ',')}
+            </span>
           )}
         </span>
       </motion.a>
@@ -114,7 +141,7 @@ export default function Unite1({ parada, modo, progreso }: { parada?: string; mo
             ← Mapa de la unidad
           </a>
           <h1 className="mt-2 mb-5 text-3xl font-black text-slate-800 sm:text-4xl">Examen de la unidad</h1>
-          <Proba id={clave('examen')} xerar={xerarExame} />
+          <Proba id={clave(EXAME)} xerar={xerarExame} />
         </div>
       ) : P ? (
         <div className="tablero">
