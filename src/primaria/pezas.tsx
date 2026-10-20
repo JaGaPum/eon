@@ -6,6 +6,9 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useAvance } from '../lib/progreso'
 import { estrellas } from '../componentes/Prueba'
 import { esVogal, ondeTil, ponTil, senTil } from '../lib/til'
+import { avisarVideo } from '../componentes/Musica'
+import { VentanaVideo } from '../componentes/Videos'
+import type { Video } from '../contenido/tema1'
 
 export function barallar<T>(xs: readonly T[]): T[] {
   const a = [...xs]
@@ -22,6 +25,8 @@ const TEXTOS = {
   gl: {
     modos: { descubre: 'Descubre', xoga: 'Xoga', proba: '★ Proba' },
     mapa: '← Mapa da unidade',
+    verVideo: '▶ Ver vídeo',
+    pecharVideo: '✕ Pechar o vídeo',
     atras: '← Atrás',
     seguinte: 'Seguinte →',
     aXogar: 'A xogar! →',
@@ -83,6 +88,8 @@ const TEXTOS = {
   es: {
     modos: { descubre: 'Aprende', xoga: 'Practica', proba: '★ Prueba' },
     mapa: '← Mapa de la unidad',
+    verVideo: '▶ Ver vídeo',
+    pecharVideo: '✕ Cerrar el vídeo',
     atras: '← Atrás',
     seguinte: 'Siguiente →',
     aXogar: '¡A practicar! →',
@@ -188,8 +195,11 @@ export function fala(texto: string, lingua = 'fr-FR') {
 
 /** La lengua de lectura de la unidad, o nada si la unidad no lee en voz alta. */
 export const useFalar = () => useContext(ContextoIdioma).falar
-/** Código corto de la lengua que se estudia («fr», «en»), para el atributo lang. */
-const useLang = () => useFalar()?.slice(0, 2) ?? 'fr'
+/** Código corto de la lengua que se estudia («fr», «en»), para el atributo lang; sin voz, la de la interfaz. */
+const useLang = () => {
+  const { falar, idioma } = useContext(ContextoIdioma)
+  return falar?.slice(0, 2) ?? idioma
+}
 
 /** Botón 🔊 que lee el texto en la lengua de la unidad. */
 export function Son({ texto, grande }: { texto: string; grande?: boolean }) {
@@ -292,18 +302,37 @@ export function Burbulla({ children, ton = 'normal' }: { children: ReactNode; to
 
 export const MODOS_PRIMARIA = ['descubre', 'xoga', 'proba'] as const
 
-/** Armazón de una parada: volver al mapa, título y los tres modos, que siguen montados al cambiar. */
-export function ParadaPrimaria({ ruta, titulo, modo, paneis }: { ruta: string; titulo: ReactNode; modo?: string; paneis: Record<(typeof MODOS_PRIMARIA)[number], ReactNode> }) {
+/**
+ * Armazón de una parada: volver al mapa, título y los tres modos, que siguen montados al cambiar. Con `videos`, un
+ * botón abre el vídeo en un recuadro flotante (no en la Proba, que va sin ayudas).
+ */
+export function ParadaPrimaria({ ruta, titulo, modo, paneis, videos = [] }: { ruta: string; titulo: ReactNode; modo?: string; paneis: Record<(typeof MODOS_PRIMARIA)[number], ReactNode>; videos?: Video[] }) {
   const t = useT()
   const { modos } = useContext(ContextoIdioma)
   const activo = MODOS_PRIMARIA.find((m) => m === modo) ?? 'descubre'
   const mapa = ruta.slice(0, ruta.lastIndexOf('/'))
+  const [video, setVideo] = useState<number | null>(null)
+  const conVideo = videos.length > 0 && activo !== 'proba'
+  const viendo = conVideo && video !== null
+  // La música de fondo se calla mientras hay un vídeo abierto.
+  useEffect(() => {
+    avisarVideo(viendo)
+    return () => avisarVideo(false)
+  }, [viendo])
   return (
     <>
       <a href={mapa} className="text-lg font-semibold text-violet-700">
         {t.mapa}
       </a>
-      <h1 className="mt-2 text-3xl font-black text-slate-800 sm:text-4xl">{titulo}</h1>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-3xl font-black text-slate-800 sm:text-4xl">{titulo}</h1>
+        {conVideo && (
+          <button className="btn border-red-600 bg-red-600 text-white hover:bg-red-700" onClick={() => setVideo(video === null ? 0 : null)}>
+            {video === null ? t.verVideo : t.pecharVideo}
+          </button>
+        )}
+      </div>
+      {viendo && <VentanaVideo videos={videos} actual={video} elegir={setVideo} cerrar={() => setVideo(null)} />}
       <nav className="mt-4 grid grid-cols-3 gap-1 rounded-2xl bg-violet-100 p-1">
         {MODOS_PRIMARIA.map((m) => (
           <a

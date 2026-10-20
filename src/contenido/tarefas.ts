@@ -20,7 +20,7 @@ export const TAREFAS: Record<string, Tarefa[]> = {
     { fecha: '2026-10-21', tipo: 'examen', materia: 'ingles', titulo: 'Modules 1ABC', nota: 'Test.', leccion: 'module1' },
     { fecha: '2026-10-22', tipo: 'recordatorio', materia: 'ingles', titulo: 'Reader', nota: 'Activities chapters 1-4. Reading from page 20.' },
     { fecha: '2026-10-23', tipo: 'examen', materia: 'lengua-castellana', titulo: 'Parcial de Lengua Castellana' },
-    { fecha: '2026-10-26', tipo: 'examen', materia: 'xeografia-historia', titulo: 'Parcial de la 1.ª evaluación', nota: 'Roma + tema 1: Bizancio, Islam, Imperio carolinxio.' },
+    { fecha: '2026-10-26', tipo: 'examen', materia: 'xeografia-historia', titulo: 'Parcial de la 1.ª evaluación', nota: 'Roma + tema 1: Bizancio, Islam, Imperio carolinxio.', leccion: 'parcial1' },
     { fecha: '2026-11-03', tipo: 'examen', materia: 'musica', titulo: 'Examen', nota: 'Apuntes da primeira avaliación ata a páxina 15: o son e as cualidades do son (a altura, a duración e a intensidade). Teñen subliñado o que traballamos na clase.' },
   ],
 }

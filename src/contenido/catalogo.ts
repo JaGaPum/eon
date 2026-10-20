@@ -96,7 +96,15 @@ export const CURSOS: Curso[] = [
         ],
       },
       sinLecciones('fisica-quimica', 'Física e Química', '⚛️'),
-      sinLecciones('xeografia-historia', 'Xeografía e Historia', '⏳'),
+      {
+        id: 'xeografia-historia',
+        nombre: 'Xeografía e Historia',
+        icono: '⏳',
+        lecciones: [
+          { id: 'parcial1', titulo: 'Parcial 1.ª avaliación · Roma e tema 1', resumen: 'Roma (etapas, goberno, cidade, romanización) e Bizancio, o Islam e o Imperio carolinxio.' },
+          { id: 'historia2', titulo: 'Tema 2 · O feudalismo e o románico', resumen: 'Aínda non entra no parcial. Sistema feudal, sociedade estamental, románico e Camiño de Santiago.' },
+        ],
+      },
       {
         id: 'lingua-galega',
         nombre: 'Lingua Galega e Literatura',
