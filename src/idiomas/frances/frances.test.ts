@@ -66,3 +66,16 @@ describe('mettre et acheter', () => {
     expect(['je', 'tu', 'il', 'nous', 'vous', 'ils'].map((p) => conxuga('acheter', p as never))).toEqual(["j'achète", 'tu achètes', 'il achète', 'nous achetons', 'vous achetez', 'ils achètent'])
   })
 })
+
+describe('ropa de la página 13', () => {
+  it('cada prenda con su demostrativo', async () => {
+    const { ROUPA, demostrativo, DIALOGO } = await import('./demonstratifs')
+    expect(ROUPA).toHaveLength(24)
+    const d = Object.fromEntries(ROUPA.map((x) => [x.fr, demostrativo(x.fr)]))
+    expect(d['un pull']).toBe('ce')
+    expect(d['un anorak']).toBe('cet')
+    expect(d['une écharpe']).toBe('cette')
+    expect(d['des leggings']).toBe('ces')
+    expect(DIALOGO.map(([, c]) => c)).toEqual(['ce', 'cette', 'ces', 'cette', 'ce'])
+  })
+})

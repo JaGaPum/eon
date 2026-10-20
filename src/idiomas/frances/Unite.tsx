@@ -23,7 +23,7 @@ const PARADAS: { id: string; titulo: string; resumen: string; examen: boolean; C
   {
     id: 'demonstratifs',
     titulo: 'Les vêtements et les démonstratifs',
-    resumen: 'La ropa con ce, cet, cette, ces (página 13).',
+    resumen: 'La ropa de la página 13 con ce, cet, cette, ces.',
     examen: true,
     Compoñente: Demonstratifs,
   },

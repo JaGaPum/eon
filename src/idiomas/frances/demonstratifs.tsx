@@ -1,5 +1,5 @@
-// Parada «Les démonstratifs»: ce, cet, cette, ces. Sin la página 13 del libro, la ropa es la habitual de 2º de ESO;
-// la regla es la de la profesora: un → ce (cet delante de vocal o h), une → cette siempre, des → ces siempre.
+// Parada «Les vêtements et les démonstratifs»: ce, cet, cette, ces con la ropa de la página 13 del libro y el
+// diálogo de la página 15. La regla es la de la profesora: un → ce (cet delante de vocal o h), une → cette siempre, des → ces siempre.
 import { Clasifica, Fr, ParadaPrimaria, Proba, Tarxetas, Une, barallar, type Pregunta, type Tarxeta, type Xogo, Xogos } from '../../primaria/pezas'
 import { elixe } from '../../primaria/paisaxes/preguntas'
 
@@ -8,30 +8,37 @@ interface Roupa {
   fr: string
   es: string
   icono: string
+  /** El grupo del vocabulario del libro. */
+  grupo?: string
 }
 
+// El vocabulario «Les vêtements» de la página 13, con sus grupos.
+export const GRUPOS_ROUPA = ['Partie supérieure', 'Partie inférieure', 'Partie supérieure + inférieure', 'Aux pieds', 'Accessoires']
 export const ROUPA: Roupa[] = [
-  { fr: 'un pantalon', es: 'un pantalón', icono: '👖' },
-  { fr: 'un jean', es: 'unos vaqueros', icono: '👖' },
-  { fr: 'un short', es: 'un pantalón corto', icono: '🩳' },
-  { fr: 'un tee-shirt', es: 'una camiseta', icono: '👕' },
-  { fr: 'un pull', es: 'un jersey', icono: '🧶' },
-  { fr: 'un manteau', es: 'un abrigo', icono: '🧥' },
-  { fr: 'un chapeau', es: 'un sombrero', icono: '🎩' },
-  { fr: 'un anorak', es: 'un anorak', icono: '🧥' },
-  { fr: 'un imperméable', es: 'un impermeable', icono: '🌧️' },
-  { fr: 'un uniforme', es: 'un uniforme', icono: '🎽' },
-  { fr: 'une jupe', es: 'una falda', icono: '👗' },
-  { fr: 'une robe', es: 'un vestido', icono: '👗' },
-  { fr: 'une chemise', es: 'una camisa', icono: '👔' },
-  { fr: 'une veste', es: 'una chaqueta', icono: '🧥' },
-  { fr: 'une casquette', es: 'una gorra', icono: '🧢' },
-  { fr: 'une écharpe', es: 'una bufanda', icono: '🧣' },
-  { fr: 'des chaussures', es: 'unos zapatos', icono: '👞' },
-  { fr: 'des baskets', es: 'unas zapatillas de deporte', icono: '👟' },
-  { fr: 'des chaussettes', es: 'unos calcetines', icono: '🧦' },
-  { fr: 'des bottes', es: 'unas botas', icono: '👢' },
-  { fr: 'des lunettes', es: 'unas gafas', icono: '👓' },
+  { fr: 'un tee-shirt', es: 'una camiseta', icono: '👕', grupo: 'Partie supérieure' },
+  { fr: 'une chemise', es: 'una camisa', icono: '👔', grupo: 'Partie supérieure' },
+  { fr: 'un sweat', es: 'una sudadera', icono: '🧥', grupo: 'Partie supérieure' },
+  { fr: 'un pull', es: 'un jersey', icono: '🧶', grupo: 'Partie supérieure' },
+  { fr: 'une veste', es: 'una chaqueta', icono: '🧥', grupo: 'Partie supérieure' },
+  { fr: 'un blouson', es: 'una cazadora', icono: '🧥', grupo: 'Partie supérieure' },
+  { fr: 'un anorak', es: 'un anorak', icono: '🧥', grupo: 'Partie supérieure' },
+  { fr: 'un short', es: 'un pantalón corto', icono: '🩳', grupo: 'Partie inférieure' },
+  { fr: 'une jupe', es: 'una falda', icono: '👗', grupo: 'Partie inférieure' },
+  { fr: 'un pantalon', es: 'un pantalón', icono: '👖', grupo: 'Partie inférieure' },
+  { fr: 'un jean', es: 'unos vaqueros', icono: '👖', grupo: 'Partie inférieure' },
+  { fr: 'des leggings', es: 'unos leggings', icono: '👖', grupo: 'Partie inférieure' },
+  { fr: 'une robe', es: 'un vestido', icono: '👗', grupo: 'Partie supérieure + inférieure' },
+  { fr: 'un survêtement', es: 'un chándal', icono: '🏃', grupo: 'Partie supérieure + inférieure' },
+  { fr: 'des chaussettes', es: 'unos calcetines', icono: '🧦', grupo: 'Aux pieds' },
+  { fr: 'des chaussures', es: 'unos zapatos', icono: '👞', grupo: 'Aux pieds' },
+  { fr: 'des bottes', es: 'unas botas', icono: '👢', grupo: 'Aux pieds' },
+  { fr: 'des bottines', es: 'unos botines', icono: '👢', grupo: 'Aux pieds' },
+  { fr: 'des baskets', es: 'unas zapatillas de deporte', icono: '👟', grupo: 'Aux pieds' },
+  { fr: 'des sandales', es: 'unas sandalias', icono: '🩴', grupo: 'Aux pieds' },
+  { fr: 'un bonnet', es: 'un gorro', icono: '🧢', grupo: 'Accessoires' },
+  { fr: 'un chapeau', es: 'un sombrero', icono: '🎩', grupo: 'Accessoires' },
+  { fr: 'une écharpe', es: 'una bufanda', icono: '🧣', grupo: 'Accessoires' },
+  { fr: 'un foulard', es: 'un pañuelo', icono: '🧣', grupo: 'Accessoires' },
 ]
 
 /** Las de los apuntes de la profesora y otras con vocal o h, para practicar cet. */
@@ -118,7 +125,7 @@ const TARXETAS: Tarxeta[] = [
           Si la palabra es masculina y empieza por {b('vocal')} o por {b('h')}, no se dice ce sino {b('cet')}. Es para que suene bien, igual que <i>je → j'</i>.
         </p>
         <div className="grid gap-2 text-xl">
-          {['un anorak', 'un imperméable', 'un uniforme', 'un ami', 'un homme'].map((x) => (
+          {['un anorak', 'un ami', 'un homme', 'un hôtel', 'un oiseau'].map((x) => (
             <span key={x} className="rounded-xl bg-white px-3 py-2">
               <span className="text-slate-500" lang="fr">
                 {x}
@@ -206,14 +213,35 @@ const TARXETAS: Tarxeta[] = [
     visual: undefined,
   },
   {
-    titulo: 'Les vêtements: la ropa',
+    titulo: 'Les vêtements (página 13)',
     texto: (
-      <div className="grid gap-1.5 sm:grid-cols-2">
-        {ROUPA.map((x) => (
-          <span key={x.fr} className="rounded-xl bg-white px-3 py-1.5 text-lg">
-            <span aria-hidden="true">{x.icono}</span> <Fr>{x.fr}</Fr> <span className="text-base text-slate-500">{x.es}</span>
-          </span>
+      <div className="space-y-3">
+        {GRUPOS_ROUPA.map((g) => (
+          <div key={g}>
+            <p className="text-sm font-bold tracking-wide text-slate-500 uppercase">{g}</p>
+            <div className="grid gap-1.5 sm:grid-cols-2">
+              {ROUPA.filter((x) => x.grupo === g).map((x) => (
+                <span key={x.fr} className="rounded-xl bg-white px-3 py-1.5 text-lg">
+                  <span aria-hidden="true">{x.icono}</span> <Fr>{x.fr}</Fr> <span className="text-base text-slate-500">{x.es}</span>
+                </span>
+              ))}
+            </div>
+          </div>
         ))}
+      </div>
+    ),
+  },
+  {
+    titulo: 'En la tienda (página 15)',
+    texto: (
+      <div className="space-y-2 text-xl">
+        <p>
+          <Fr>Tu achètes ce pull ?</Fr> — <Fr>Oui ! Regarde, je mets cette veste avec.</Fr>
+        </p>
+        <p className="rounded-2xl bg-white p-4">
+          <Fr>Dans la boutique, j'achète ce blouson, ce pantalon et ces baskets.</Fr> <Fr>Avec le blouson, le pantalon et les baskets, je mets ce tee-shirt et ce foulard.</Fr>
+        </p>
+        <p className="text-base text-slate-600">💡 La primera vez que se señala la prenda, demostrativo (ce blouson); después, cuando ya se sabe cuál es, artículo (le blouson).</p>
       </div>
     ),
   },
@@ -257,7 +285,24 @@ const escribe = (x: Roupa): Pregunta => ({
   explica: explica(x.fr),
 })
 
+// Ejercicio 5 de la página 15: los huecos (★) que son demostrativos.
+export const DIALOGO: [string, string][] = [
+  ['Hé ! les filles, regardez. Je mets ___ sweat…', 'ce'],
+  ['…et ___ veste par-dessus. Ça va super bien ensemble, non ?', 'cette'],
+  ['Oui, tu as raison, ___ deux vêtements vont super bien ensemble !', 'ces'],
+  ['Tu as déjà une veste de ___ couleur, non ?', 'cette'],
+  ['Tu peux la mettre avec ___ sweat.', 'ce'],
+]
+const dialogo = DIALOGO.map(([f, c]) => elixe(<span lang="fr">{f}</span>, c, OPCIONS.filter((o) => o !== c), <>{c === 'ces' ? 'Plural: ces.' : c === 'cette' ? 'Femenino: cette.' : 'Masculino con consonante: ce.'}</>))
+
 const XOGOS: Xogo[] = [
+  {
+    id: 'dialogo',
+    titulo: 'El diálogo de la tienda (ej. 5)',
+    icono: '🛍️',
+    explica: 'Completa con ce, cet, cette o ces.',
+    crear: (acabar) => <Proba practica cantas={5} preguntas={dialogo} acabar={acabar} />,
+  },
   {
     id: 'clasifica',
     titulo: '¿Ce, cet, cette o ces?',
@@ -297,6 +342,7 @@ const XOGOS: Xogo[] = [
 ]
 
 export const PREGUNTAS: Pregunta[] = [
+  ...dialogo,
   ...TODAS.map(elixeConArtigo),
   ...TODAS.map(escribe),
   ...ROUPA.map((x) =>
@@ -320,7 +366,7 @@ export default function Demonstratifs({ ruta, modo }: { ruta: string; modo?: str
   return (
     <ParadaPrimaria
       ruta={ruta}
-      titulo="Les démonstratifs"
+      titulo="Les vêtements et les démonstratifs"
       modo={modo}
       paneis={{
         descubre: <Tarxetas tarxetas={TARXETAS} xoga={`${ruta}/xoga`} />,
