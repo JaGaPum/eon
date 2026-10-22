@@ -111,7 +111,12 @@ export const CURSOS: Curso[] = [
         icono: '📜',
         lecciones: [{ id: 'proba1', titulo: 'Proba de aula 1 · Textos e acentuación', resumen: 'Descrición, tema e título, resumo, definir, regras de acentuación e diacríticos.' }],
       },
-      sinLecciones('lengua-castellana', 'Lengua Castellana y Literatura', '✒️'),
+      {
+        id: 'lengua-castellana',
+        nombre: 'Lengua Castellana y Literatura',
+        icono: '✒️',
+        lecciones: [{ id: 'lengua1', titulo: 'Parcial · Unidades 1 y 2', resumen: 'Funciones del lenguaje, sílabas, unidades de la lengua, acentuación y significado.' }],
+      },
       {
         id: 'ingles',
         nombre: 'Inglés',

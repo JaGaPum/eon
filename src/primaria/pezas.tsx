@@ -1131,13 +1131,15 @@ export function Estrelas({ n }: { n: number }) {
  * Con `correctas`, ensina en verde a forma boa.
  */
 export function ElixeTil({ palabra, enviar, bloqueada, correctas }: { palabra: string; enviar: (forma: string) => void; bloqueada?: boolean; correctas?: string[] }) {
+  const { idioma } = useContext(ContextoIdioma)
+  const es = idioma === 'es'
   const base = senTil(palabra)
   const [i, setI] = useState(-2)
   const forma = i >= -1 ? ponTil(base, i) : null
   const boa = correctas?.[0]
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-end justify-center gap-1" lang="gl">
+      <div className="flex flex-wrap items-end justify-center gap-1" lang={idioma}>
         {base.split('').map((c, k) => {
           const vogal = esVogal(c)
           const posto = i === k
@@ -1151,7 +1153,7 @@ export function ElixeTil({ palabra, enviar, bloqueada, correctas }: { palabra: s
               className={`h-16 min-w-11 rounded-xl border-2 px-1 text-4xl font-bold transition ${
                 enBoa ? 'border-emerald-500 bg-emerald-100 text-emerald-800' : posto ? 'border-violet-600 bg-violet-600 text-white' : vogal ? 'cursor-pointer border-violet-200 bg-white text-slate-800 hover:bg-violet-50' : 'border-transparent bg-transparent text-slate-500'
               }`}
-              aria-label={vogal ? `Til no ${c}` : c}
+              aria-label={vogal ? (es ? `Tilde en la ${c}` : `Til no ${c}`) : c}
             >
               {posto || enBoa ? ponTil(c, 0) : c}
             </button>
@@ -1161,7 +1163,7 @@ export function ElixeTil({ palabra, enviar, bloqueada, correctas }: { palabra: s
       {!bloqueada && (
         <div className="flex flex-wrap justify-center gap-2">
           <button type="button" className={`btn min-h-12 text-lg ${i === -1 ? 'btn-activo' : ''}`} onClick={() => setI(i === -1 ? -2 : -1)}>
-            Non leva til
+            {es ? 'No lleva tilde' : 'Non leva til'}
           </button>
           <button type="button" className="btn btn-primario min-h-12 border-violet-600 bg-violet-600 text-lg hover:bg-violet-700" disabled={!forma} onClick={() => forma && enviar(forma)}>
             Comprobar{forma ? `: ${forma}` : ''}
