@@ -69,7 +69,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icono.svg', 'alumnos/*'],
       // La música no se guarda para usar sin conexión (pesa mucho) y sus créditos se abren tal cual.
-      workbox: { navigateFallbackDenylist: [/^\/musica\//] },
+      workbox: { navigateFallbackDenylist: [/^\/musica\//, /^\/apuntes\//] },
       manifest: {
         name: 'Eón',
         short_name: 'Eón',

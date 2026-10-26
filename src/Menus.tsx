@@ -179,6 +179,20 @@ export function Lecciones({ curso, materia, avance }: { curso: Curso; materia: M
           estado: avance(l.id),
         }))}
       />
+      {materia.lecciones.some((l) => l.apuntes) && (
+        <section className="mt-6">
+          <h2 className="mb-3 text-sm font-bold tracking-widest text-indigo-300 uppercase">Apuntes para imprimir</h2>
+          <div className="flex flex-wrap gap-2">
+            {materia.lecciones
+              .filter((l) => l.apuntes)
+              .map((l) => (
+                <a key={l.id} href={l.apuntes} target="_blank" rel="noopener" className="cristal flex items-center gap-2 border-indigo-300/50 px-4 py-3 font-semibold text-white hover:bg-white/[0.12]">
+                  <span aria-hidden="true">📄</span> {l.titulo.split(' · ')[0]} <span className="text-sm text-indigo-200">(PDF)</span>
+                </a>
+              ))}
+          </div>
+        </section>
+      )}
       <p className="mt-6 text-sm text-indigo-300">Las siguientes lecciones aparecerán aquí a medida que se añadan.</p>
     </>
   )

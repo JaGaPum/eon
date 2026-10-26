@@ -16,7 +16,7 @@ export interface Tarefa {
 export const TAREFAS: Record<string, Tarefa[]> = {
   // Mateo y Pablo van a la misma clase: Pablo ve estas mismas.
   mateo: [
-    { fecha: '2026-10-19', tipo: 'examen', materia: 'fisica-quimica', titulo: 'Parcial de Física y Química' },
+    { fecha: '2026-10-19', tipo: 'examen', materia: 'fisica-quimica', titulo: 'Parcial de Física y Química', leccion: 'fq1' },
     { fecha: '2026-10-21', tipo: 'examen', materia: 'ingles', titulo: 'Modules 1ABC', nota: 'Test.', leccion: 'module1' },
     { fecha: '2026-10-22', tipo: 'recordatorio', materia: 'ingles', titulo: 'Reader', nota: 'Activities chapters 1-4. Reading from page 20.' },
     { fecha: '2026-10-23', tipo: 'examen', materia: 'lengua-castellana', titulo: 'Parcial de Lengua Castellana', nota: 'Los recuadros azules de las páginas 8, 10, 11, 22 y 23.', leccion: 'lengua1' },

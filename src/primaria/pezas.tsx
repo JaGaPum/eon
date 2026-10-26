@@ -903,6 +903,23 @@ export type Pregunta =
   | { tipo: 'escribe'; texto: ReactNode; respostas: string[]; explica?: ReactNode; oir?: string }
   /** Poñer o til: tócase a vogal que o leva ou «Non leva til». `respostas`: as formas válidas. */
   | { tipo: 'til'; texto: ReactNode; palabra: string; respostas: string[]; explica?: ReactNode; oir?: string }
+  /** Escribir un número (con coma o punto). Vale si se aparta de `valor` menos que `marxe` (por defecto, un 1 %). */
+  | { tipo: 'numero'; texto: ReactNode; valor: number; unidade?: string; marxe?: number; explica?: ReactNode; oir?: string }
+
+/** Un número escrito por el alumno: «22,8», «22.8», «2,5 atm» o «1.000» (punto de miles). */
+export function lerNumero(escrito: string): number | null {
+  let s = escrito.trim().replace(/\s+/g, '').replace(/[^0-9,.\-−]/g, '').replace('−', '-')
+  if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g, '')
+  s = s.replace(',', '.')
+  const n = Number(s)
+  return s !== '' && Number.isFinite(n) ? n : null
+}
+export const numeroBen = (escrito: string, valor: number, marxe = 0.01) => {
+  const n = lerNumero(escrito)
+  return n !== null && Math.abs(n - valor) <= Math.max(Math.abs(valor) * marxe, 1e-9)
+}
+/** Un número con coma decimal y como mucho `dec` decimales: 22,777… → «22,78». */
+export const conComa = (n: number, dec = 2) => String(Math.round(n * 10 ** dec) / 10 ** dec).replace('.', ',')
 
 export const PREGUNTAS_PROBA = 8
 
@@ -1081,6 +1098,14 @@ export function Proba({
           />
         </div>
       )}
+      {p.tipo === 'numero' && (
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <Campo key={k} desactivado={resposta !== null} onEnviar={(texto) => responder(texto, numeroBen(texto, p.valor, p.marxe) ? 'ben' : 'mal')} />
+          </div>
+          {p.unidade && <span className="text-xl font-bold text-slate-600">{p.unidade}</span>}
+        </div>
+      )}
       {p.tipo === 'escribe' && <Campo key={k} desactivado={resposta !== null} onEnviar={(texto) => responder(texto, corrixir(texto, p.respostas))} />}
       {p.tipo === 'til' && (
         <ElixeTil key={k} palabra={p.palabra} bloqueada={resposta !== null} correctas={resposta !== null ? p.respostas : undefined} enviar={(f) => responder(f, p.respostas.includes(f) ? 'ben' : 'mal')} />
@@ -1091,8 +1116,18 @@ export function Proba({
             {p.tipo === 'til' ? (
               <>
                 {ben ? t.ben : t.non}
-                {!ben && <>Escríbese <b>{p.respostas.join(' ou ')}</b>. </>}
+                {!ben && <>{t.solucion(p.respostas.join(' / '))} </>}
                 {p.explica && <span className="font-medium">{p.explica}</span>}
+              </>
+            ) : p.tipo === 'numero' ? (
+              <>
+                {ben ? t.ben : t.non}
+                {!ben && (
+                  <b>
+                    {conComa(p.valor, 3)} {p.unidade}.{' '}
+                  </b>
+                )}
+                {p.explica && <span className="block font-medium">{p.explica}</span>}
               </>
             ) : p.tipo === 'escribe' ? (
               <>

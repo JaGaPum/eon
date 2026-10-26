@@ -4,6 +4,8 @@ export interface Leccion {
   id: string
   titulo: string
   resumen: string
+  /** Apuntes en PDF para imprimir o leer, dentro de public/apuntes/. */
+  apuntes?: string
 }
 
 export interface Materia {
@@ -95,13 +97,18 @@ export const CURSOS: Curso[] = [
           { id: 'tema2', titulo: 'Tema 2 · Fracciones y decimales', resumen: 'Equivalentes, operaciones y combinadas, decimales periódicos y aproximaciones.' },
         ],
       },
-      sinLecciones('fisica-quimica', 'Física e Química', '⚛️'),
+      {
+        id: 'fisica-quimica',
+        nombre: 'Física e Química',
+        icono: '⚛️',
+        lecciones: [{ id: 'fq1', titulo: 'Primer parcial · La materia, la medida y los estados', resumen: 'Factores de conversión, densidad, cambios de estado y sus gráficas, y ley de Boyle-Mariotte.', apuntes: 'apuntes/fisica-quimica-parcial1.pdf' }],
+      },
       {
         id: 'xeografia-historia',
         nombre: 'Xeografía e Historia',
         icono: '⏳',
         lecciones: [
-          { id: 'parcial1', titulo: 'Parcial 1.ª avaliación · Roma e tema 1', resumen: 'Roma (etapas, goberno, cidade, romanización) e Bizancio, o Islam e o Imperio carolinxio.' },
+          { id: 'parcial1', titulo: 'Parcial 1.ª avaliación · Roma e tema 1', resumen: 'Roma (etapas, goberno, cidade, romanización) e Bizancio, o Islam e o Imperio carolinxio.', apuntes: 'apuntes/historia-parcial1.pdf' },
           { id: 'historia2', titulo: 'Tema 2 · O feudalismo e o románico', resumen: 'Aínda non entra no parcial. Sistema feudal, sociedade estamental, románico e Camiño de Santiago.' },
         ],
       },
