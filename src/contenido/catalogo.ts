@@ -71,7 +71,12 @@ export const CURSOS: Curso[] = [
         icono: '🌿',
         lecciones: [{ id: 'paisaxes', titulo: 'Unidade 1 · Descubrimos as paisaxes', resumen: 'A Terra e as paisaxes de montaña, de chaira e de costa.' }],
       },
-      sinLecciones('ingles', 'Inglés', '🛰️'),
+      {
+        id: 'ingles',
+        nombre: 'Inglés',
+        icono: '🛰️',
+        lecciones: [{ id: 'ingles3', titulo: 'Units 1 and 2 · Animals and Bedroom', resumen: 'Animales, describirlos, las cosas de la habitación, This is / These are, feelings y la libreta.', apuntes: 'apuntes/ingles-olivia-units1-2.pdf' }],
+      },
       sinLecciones('educacion-artistica', 'Educación Artística', '🎨'),
       sinLecciones('educacion-fisica', 'Educación Física', '☄️'),
     ],

@@ -29,6 +29,7 @@ import Historia1, { avanceHistoria1 } from './historia/parcial1/Unidade'
 import Historia2, { avanceHistoria2 } from './historia/tema2/Unidade'
 import Lengua1, { avanceLengua1 } from './lengua/examen1/Unidade'
 import FQ1, { avanceFQ1 } from './ciencias/fq1/Unidade'
+import Ingles3, { avanceIngles3 } from './primaria/ingles/Unidade'
 
 // Paradas del Tema 1 de Matemáticas de 2º.
 const PARADAS: Record<string, ComponentType<PropsParada>> = {
@@ -60,6 +61,7 @@ const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; m
   historia2: { Compoñente: Historia2, avance: avanceHistoria2 },
   lengua1: { Compoñente: Lengua1, avance: avanceLengua1 },
   fq1: { Compoñente: FQ1, avance: avanceFQ1 },
+  ingles3: { Compoñente: Ingles3, avance: avanceIngles3 },
 }
 
 /** El último alumno elegido en la pantalla de inicio, recordado en este dispositivo. */

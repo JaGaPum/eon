@@ -903,6 +903,8 @@ export type Pregunta =
   | { tipo: 'escribe'; texto: ReactNode; respostas: string[]; explica?: ReactNode; oir?: string }
   /** Poñer o til: tócase a vogal que o leva ou «Non leva til». `respostas`: as formas válidas. */
   | { tipo: 'til'; texto: ReactNode; palabra: string; respostas: string[]; explica?: ReactNode; oir?: string }
+  /** Formar una palabra tocando sus letras desordenadas. `visual`: el dibujo de lo que se deletrea. */
+  | { tipo: 'deletrea'; texto: ReactNode; palabra: string; visual?: ReactNode; explica?: ReactNode; oir?: string }
   /** Escribir un número (con coma o punto). Vale si se aparta de `valor` menos que `marxe` (por defecto, un 1 %). */
   | { tipo: 'numero'; texto: ReactNode; valor: number; unidade?: string; marxe?: number; explica?: ReactNode; oir?: string }
 
@@ -1098,6 +1100,12 @@ export function Proba({
           />
         </div>
       )}
+      {p.tipo === 'deletrea' && (
+        <>
+          {p.visual && <div className="flex justify-center">{p.visual}</div>}
+          <Deletrea key={k} palabra={p.palabra} proba bloqueada={resposta !== null} enviar={(f) => responder(f, f === p.palabra ? 'ben' : 'mal')} />
+        </>
+      )}
       {p.tipo === 'numero' && (
         <div className="flex items-center gap-2">
           <div className="flex-1">
@@ -1118,6 +1126,13 @@ export function Proba({
                 {ben ? t.ben : t.non}
                 {!ben && <>{t.solucion(p.respostas.join(' / '))} </>}
                 {p.explica && <span className="font-medium">{p.explica}</span>}
+              </>
+            ) : p.tipo === 'deletrea' ? (
+              <>
+                {ben ? t.ben : t.non}
+                {!ben && <>{t.solucion(p.palabra)} </>}
+                <Son texto={p.palabra} />
+                {p.explica && <span className="block font-medium">{p.explica}</span>}
               </>
             ) : p.tipo === 'numero' ? (
               <>
@@ -1204,6 +1219,137 @@ export function ElixeTil({ palabra, enviar, bloqueada, correctas }: { palabra: s
             Comprobar{forma ? `: ${forma}` : ''}
           </button>
         </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Deletrea: la palabra se oye y se forma tocando sus letras desordenadas. En práctica, una letra equivocada no se
+ * pone y se avisa; con `proba`, se ponen todas y se comprueba al final (se pueden quitar con ⌫).
+ */
+export function Deletrea({ palabra, enviar, acabar, proba, bloqueada }: { palabra: string; enviar?: (forma: string) => void; acabar?: () => void; proba?: boolean; bloqueada?: boolean }) {
+  const lingua = useFalar()
+  const { idioma } = useContext(ContextoIdioma)
+  const es = idioma === 'es'
+  const letras = useMemo(() => barallar([...palabra].map((c, i) => ({ c, i })).filter((x) => x.c !== ' ')), [palabra])
+  const [postas, setPostas] = useState<number[]>([])
+  const [mal, setMal] = useState<number | null>(null)
+  const huecos = [...palabra]
+  const sinEspacios = huecos.filter((c) => c !== ' ')
+  const escrita = postas.map((k) => letras[k].c).join('')
+  const completa = postas.length === sinEspacios.length
+  // La palabra con espacios donde toca, a partir de las letras puestas.
+  const conEspacios = (() => {
+    let j = 0
+    return huecos.map((c) => (c === ' ' ? ' ' : (escrita[j++] ?? ''))).join('')
+  })()
+
+  useEffect(() => {
+    if (lingua) fala(palabra, lingua)
+  }, [palabra, lingua])
+
+  function poner(k: number) {
+    if (bloqueada || postas.includes(k)) return
+    if (!proba) {
+      const toca = sinEspacios[postas.length]
+      if (letras[k].c.toLowerCase() !== toca.toLowerCase()) {
+        setMal(k)
+        setTimeout(() => setMal(null), 600)
+        return
+      }
+      const nuevas = [...postas, k]
+      setPostas(nuevas)
+      if (nuevas.length === sinEspacios.length) {
+        if (lingua) fala(palabra, lingua)
+        acabar?.()
+      }
+      return
+    }
+    setPostas([...postas, k])
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-center gap-2">
+        <Son texto={palabra} grande />
+      </div>
+      <div className="flex flex-wrap justify-center gap-1.5" aria-label={conEspacios}>
+        {(() => {
+          let j = 0
+          return huecos.map((c, i) =>
+            c === ' ' ? (
+              <span key={i} className="w-5" />
+            ) : (
+              <span
+                key={i}
+                className={`flex h-14 w-11 items-end justify-center rounded-lg border-b-4 bg-violet-50 pb-1 text-3xl font-black ${!proba && completa ? 'border-emerald-500 text-emerald-700' : 'border-violet-400 text-slate-800'}`}
+              >
+                {escrita[j++] ?? ''}
+              </span>
+            ),
+          )
+        })()}
+      </div>
+      {!bloqueada && !(completa && !proba) && (
+        <div className="flex flex-wrap justify-center gap-2">
+          {letras.map((x, k) => (
+            <motion.button
+              key={k}
+              type="button"
+              disabled={postas.includes(k)}
+              onClick={() => poner(k)}
+              animate={mal === k ? { x: [0, -8, 8, -6, 6, 0] } : { x: 0 }}
+              transition={{ duration: 0.4 }}
+              className={`h-14 min-w-12 cursor-pointer rounded-xl border-2 px-2 text-3xl font-black transition disabled:opacity-20 ${mal === k ? 'border-rose-400 bg-rose-100 text-rose-700' : 'border-violet-200 bg-white text-slate-800 hover:bg-violet-50'}`}
+            >
+              {x.c}
+            </motion.button>
+          ))}
+        </div>
+      )}
+      {mal !== null && <p className="text-center text-lg font-semibold text-rose-700">{es ? 'Esa no va ahí. Escucha otra vez 🔊' : 'Esa non vai aí. Escoita outra vez 🔊'}</p>}
+      {proba && !bloqueada && (
+        <div className="flex gap-2">
+          <button type="button" className="btn min-h-12 flex-1 text-lg" disabled={postas.length === 0} onClick={() => setPostas(postas.slice(0, -1))}>
+            ⌫
+          </button>
+          <button type="button" className="btn btn-primario min-h-12 flex-2 border-violet-600 bg-violet-600 text-lg hover:bg-violet-700" disabled={!completa} onClick={() => enviar?.(conEspacios)}>
+            {es ? 'Comprobar' : 'Comprobar'}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Serie de palabras para deletrear una detrás de otra, con su dibujo. */
+export function SerieDeletrea({ palabras, acabar }: { palabras: { palabra: string; visual?: ReactNode; pista?: string }[]; acabar: () => void }) {
+  const t = useT()
+  const orde = useMemo(() => barallar(palabras), [palabras])
+  const [k, setK] = useState(0)
+  const [feita, setFeita] = useState(false)
+  if (k >= orde.length) return <Burbulla ton="ben">{t.ordenado}</Burbulla>
+  const p = orde[k]
+  return (
+    <div className="space-y-3">
+      <p className="text-center text-sm font-semibold text-slate-500">
+        {k + 1} / {orde.length}
+      </p>
+      {p.visual && <div className="flex justify-center">{p.visual}</div>}
+      {p.pista && <p className="text-center text-lg text-slate-600">{p.pista}</p>}
+      <Deletrea key={k} palabra={p.palabra} acabar={() => setFeita(true)} />
+      {feita && (
+        <button
+          className="btn btn-primario min-h-14 w-full border-violet-600 bg-violet-600 text-xl hover:bg-violet-700"
+          onClick={() => {
+            setFeita(false)
+            setK(k + 1)
+            if (k + 1 === orde.length) acabar()
+          }}
+        >
+          {t.seguintePregunta}
+        </button>
       )}
     </div>
   )
