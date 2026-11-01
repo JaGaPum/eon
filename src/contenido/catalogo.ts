@@ -142,7 +142,12 @@ export const CURSOS: Curso[] = [
         lecciones: [{ id: 'unite1', titulo: 'Unité 1 · La famille, le corps, les métiers', resumen: 'Verbos en -er, familia, cuerpo, profesiones y preguntas.' }],
       },
       sinLecciones('tecnoloxia', 'Tecnoloxía e Dixitalización', '🤖'),
-      sinLecciones('musica', 'Música', '🎵'),
+      {
+        id: 'musica',
+        nombre: 'Música',
+        icono: '🎵',
+        lecciones: [{ id: 'musica1', titulo: 'Exame · 1.ª avaliación', resumen: 'O son e as cualidades do son: a altura, a duración e a intensidade.', apuntes: 'apuntes/musica-avaliacion1.pdf' }],
+      },
       sinLecciones('educacion-fisica', 'Educación Física', '☄️'),
     ],
   },
