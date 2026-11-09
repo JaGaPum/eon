@@ -65,10 +65,17 @@ export const CURSOS: Curso[] = [
       sinLecciones('matematicas', 'Matemáticas', '🔢'),
       sinLecciones('lingua-galega', 'Lingua Galega e Literatura', '📜'),
       sinLecciones('lengua-castellana', 'Lengua Castellana y Literatura', '✒️'),
+      // Coñecemento do Medio vai en dous libros: Ciencias Sociais e Ciencias da Natureza. Sociais conserva o id antigo.
+      {
+        id: 'ciencias-natureza',
+        nombre: 'Ciencias da Natureza',
+        icono: '🌿',
+        lecciones: [{ id: 'planeta', titulo: 'Unidade 1 · O planeta da vida', resumen: 'Os seres vivos, os cinco reinos, os fungos, os protistas e as bacterias.' }],
+      },
       {
         id: 'conecemento-medio',
-        nombre: 'Coñecemento do Medio Natural, Social e Cultural',
-        icono: '🌿',
+        nombre: 'Ciencias Sociais',
+        icono: '🗺️',
         lecciones: [{ id: 'paisaxes', titulo: 'Unidade 1 · Descubrimos as paisaxes', resumen: 'A Terra e as paisaxes de montaña, de chaira e de costa.' }],
       },
       {
