@@ -615,8 +615,8 @@ export function Clasifica({ caixas, elementos, acabar }: { caixas: Caixa[]; elem
   )
 }
 
-/** Une: cada palabra co que significa. Tócase a palabra e despois o seu significado. */
-export function Une({ pares, acabar }: { pares: { palabra: string; significado: string }[]; acabar: () => void }) {
+/** Une: cada palabra co que significa. Tócase a palabra e despois o seu significado. `axuda`: outra explicación. */
+export function Une({ pares, acabar, axuda }: { pares: { palabra: string; significado: string }[]; acabar: () => void; axuda?: string }) {
   const t = useT()
   const lingua = useFalar()
   const palabras = useMemo(() => barallar(pares.map((p) => p.palabra)), [pares])
@@ -643,7 +643,7 @@ export function Une({ pares, acabar }: { pares: { palabra: string; significado: 
 
   return (
     <div className="space-y-4">
-      {rematado ? <Burbulla ton="ben">{t.unido}</Burbulla> : <Burbulla ton={aviso?.ton}>{aviso?.texto ?? t.uneAxuda}</Burbulla>}
+      {rematado ? <Burbulla ton="ben">{t.unido}</Burbulla> : <Burbulla ton={aviso?.ton}>{aviso?.texto ?? axuda ?? t.uneAxuda}</Burbulla>}
       <div className="grid grid-cols-[2fr_5fr] gap-3">
         <div className="flex flex-col gap-2">
           {palabras.map((w) => (

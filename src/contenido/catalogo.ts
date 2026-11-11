@@ -64,7 +64,12 @@ export const CURSOS: Curso[] = [
     materias: [
       sinLecciones('matematicas', 'Matemáticas', '🔢'),
       sinLecciones('lingua-galega', 'Lingua Galega e Literatura', '📜'),
-      sinLecciones('lengua-castellana', 'Lengua Castellana y Literatura', '✒️'),
+      {
+        id: 'lengua-castellana',
+        nombre: 'Lengua Castellana y Literatura',
+        icono: '✒️',
+        lecciones: [{ id: 'iguales', titulo: 'Unidad 2 · ¿Somos iguales?', resumen: 'El cuento y el texto informativo, los antónimos, el sonido G suave, la oración, el sujeto y el predicado.' }],
+      },
       // Coñecemento do Medio vai en dous libros: Ciencias Sociais e Ciencias da Natureza. Sociais conserva o id antigo.
       {
         id: 'ciencias-natureza',
