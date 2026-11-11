@@ -153,7 +153,12 @@ export const CURSOS: Curso[] = [
         icono: '🌍',
         lecciones: [{ id: 'unite1', titulo: 'Unité 1 · La famille, le corps, les métiers', resumen: 'Verbos en -er, familia, cuerpo, profesiones y preguntas.' }],
       },
-      sinLecciones('tecnoloxia', 'Tecnoloxía e Dixitalización', '🤖'),
+      {
+        id: 'tecnoloxia',
+        nombre: 'Tecnoloxía e Dixitalización',
+        icono: '🤖',
+        lecciones: [{ id: 'electricidad', titulo: 'Tema 1 · Electricidad', resumen: 'Ejercicios y problemas: carga e intensidad, ley de Ohm, resistencia de un hilo, serie y paralelo, y esquemas.' }],
+      },
       {
         id: 'musica',
         nombre: 'Música',

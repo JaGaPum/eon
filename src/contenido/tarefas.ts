@@ -22,6 +22,7 @@ export const TAREFAS: Record<string, Tarefa[]> = {
     { fecha: '2026-10-23', tipo: 'examen', materia: 'lengua-castellana', titulo: 'Parcial de Lengua Castellana', nota: 'Los recuadros azules de las páginas 8, 10, 11, 22 y 23.', leccion: 'lengua1' },
     { fecha: '2026-10-26', tipo: 'examen', materia: 'xeografia-historia', titulo: 'Parcial de la 1.ª evaluación', nota: 'Roma + tema 1: Bizancio, Islam, Imperio carolinxio.', leccion: 'parcial1' },
     { fecha: '2026-11-03', tipo: 'examen', materia: 'musica', titulo: 'Examen', nota: 'Apuntes da primeira avaliación ata a páxina 15: o son e as cualidades do son (a altura, a duración e a intensidade). Teñen subliñado o que traballamos na clase.', leccion: 'musica1' },
+    { fecha: '2026-11-13', tipo: 'examen', materia: 'tecnoloxia', titulo: 'Examen de Tecnología: electricidad', nota: 'Solo ejercicios y problemas.', leccion: 'electricidad' },
   ],
   olivia: [{ fecha: '2026-11-12', tipo: 'examen', materia: 'lengua-castellana', titulo: 'Examen de Lengua: unidad 2', nota: '¿Somos iguales?: antónimos, sonido G suave, la oración, sujeto y predicado.', leccion: 'iguales' }],
 }

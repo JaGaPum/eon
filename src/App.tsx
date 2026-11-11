@@ -33,6 +33,7 @@ import Ingles3, { avanceIngles3 } from './primaria/ingles/Unidade'
 import Musica1, { avanceMusica1 } from './musica/parcial1/Unidade'
 import Planeta, { avancePlaneta } from './primaria/natureza/Unidade'
 import Iguales, { avanceIguales } from './primaria/lengua/Unidade'
+import Electricidad, { avanceElectricidad } from './tecnologia/electricidad/Unidade'
 
 // Paradas del Tema 1 de Matemáticas de 2º.
 const PARADAS: Record<string, ComponentType<PropsParada>> = {
@@ -68,6 +69,7 @@ const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; m
   musica1: { Compoñente: Musica1, avance: avanceMusica1 },
   planeta: { Compoñente: Planeta, avance: avancePlaneta },
   iguales: { Compoñente: Iguales, avance: avanceIguales },
+  electricidad: { Compoñente: Electricidad, avance: avanceElectricidad },
 }
 
 /** El último alumno elegido en la pantalla de inicio, recordado en este dispositivo. */
