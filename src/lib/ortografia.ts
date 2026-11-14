@@ -81,16 +81,67 @@ export const conHuecoG = (palabra: string) => {
 
 // ——— El sonido K: c delante de a, o, u; qu delante de e, i ———
 
-export type GrafiaK = 'c' | 'qu'
-
-/** El primer sonido K de la palabra. */
-export function huecoK(palabra: string): { antes: string; grafia: GrafiaK; despues: string } {
-  const w = palabra.toLowerCase()
-  for (let i = 0; i < w.length; i++) {
-    if (w[i] === 'q' && w[i + 1] === 'u') return { antes: palabra.slice(0, i), grafia: 'qu', despues: palabra.slice(i + 2) }
-    if (w[i] === 'c' && !E_I.test(w[i + 1] ?? '') && w[i + 1] !== 'h') return { antes: palabra.slice(0, i), grafia: 'c', despues: palabra.slice(i + 1) }
-  }
-  throw new Error(`«${palabra}» no tiene sonido K`)
+export type GrafiaK = 'c' | 'qu' | 'k'
+export interface HuecoK {
+  antes: string
+  grafia: GrafiaK
+  despues: string
 }
 
-export const reglaK = (g: GrafiaK) => (g === 'c' ? 'Delante de a, o, u se escribe c.' : 'Delante de e, i se escribe qu.')
+/**
+ * Todos los sonidos K de la palabra: c delante de a, o, u o de consonante, qu (delante de e, i) y k. La c delante
+ * de e, i no suena K (cervo, fociño) y la ch es otro sonido.
+ */
+export function huecosK(palabra: string): HuecoK[] {
+  const w = palabra.toLowerCase()
+  const r: HuecoK[] = []
+  for (let i = 0; i < w.length; i++) {
+    if (w[i] === 'q' && w[i + 1] === 'u') {
+      r.push({ antes: palabra.slice(0, i), grafia: 'qu', despues: palabra.slice(i + 2) })
+      i++
+    } else if (w[i] === 'k') r.push({ antes: palabra.slice(0, i), grafia: 'k', despues: palabra.slice(i + 1) })
+    else if (w[i] === 'c' && !E_I.test(w[i + 1] ?? '') && w[i + 1] !== 'h') r.push({ antes: palabra.slice(0, i), grafia: 'c', despues: palabra.slice(i + 1) })
+  }
+  return r
+}
+
+/** El primer sonido K de la palabra. */
+export function huecoK(palabra: string): HuecoK {
+  const h = huecosK(palabra)[0]
+  if (!h) throw new Error(`«${palabra}» no tiene sonido K`)
+  return h
+}
+
+export const tieneSonK = (palabra: string) => huecosK(palabra).length > 0
+
+export const reglaK = (g: GrafiaK) => (g === 'c' ? 'Delante de a, o, u se escribe c.' : g === 'qu' ? 'Delante de e, i se escribe qu.' : 'La k solo va en palabras de otras lenguas.')
+
+// ——— Galego: palabras derivadas co son K e dígrafos ———
+
+/** Diminutivo en -iña/-iño: cunca → cunquiña, barco → barquiño. O son K pasa de c a qu porque vén un i. */
+export function diminutivoK(palabra: string): string {
+  const m = /^(.*)c([ao])$/.exec(palabra)
+  if (!m) throw new Error(`«${palabra}» non remata en -ca ou -co`)
+  return `${m[1]}qui${m[2] === 'a' ? 'ña' : 'ño'}`
+}
+
+/** Derivado en -eiro: banco → banqueiro, vaca → vaqueiro. Diante de e, o son K escríbese qu. */
+export function derivadoEiro(palabra: string): string {
+  const m = /^(.*)c[ao]$/.exec(palabra)
+  if (!m) throw new Error(`«${palabra}» non remata en -ca ou -co`)
+  return `${m[1]}queiro`
+}
+
+/** Os dígrafos do galego que hai na palabra: dúas letras que soan coma un só son (ch, ll, nh, rr, qu, gu). */
+export function digrafos(palabra: string): string[] {
+  const w = palabra.toLowerCase()
+  const r: string[] = []
+  for (let i = 0; i + 1 < w.length; i++) {
+    const d = w.slice(i, i + 2)
+    if (['ch', 'll', 'nh', 'rr'].includes(d) || ((d === 'qu' || d === 'gu') && E_I.test(w[i + 2] ?? ''))) {
+      r.push(d)
+      i++
+    }
+  }
+  return r
+}

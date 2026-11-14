@@ -63,7 +63,12 @@ export const CURSOS: Curso[] = [
     // Áreas de 3º de Primaria en Galicia (Decreto 155/2022), con su nombre oficial.
     materias: [
       sinLecciones('matematicas', 'Matemáticas', '🔢'),
-      sinLecciones('lingua-galega', 'Lingua Galega e Literatura', '📜'),
+      {
+        id: 'lingua-galega',
+        nombre: 'Lingua Galega e Literatura',
+        icono: '📜',
+        lecciones: [{ id: 'comemos', titulo: 'Unidade 2 · Somos o que comemos', resumen: 'O conto e a noticia, o dicionario, o son K, as sílabas e as clases de palabras.' }],
+      },
       {
         id: 'lengua-castellana',
         nombre: 'Lengua Castellana y Literatura',

@@ -24,7 +24,10 @@ export const TAREFAS: Record<string, Tarefa[]> = {
     { fecha: '2026-11-03', tipo: 'examen', materia: 'musica', titulo: 'Examen', nota: 'Apuntes da primeira avaliación ata a páxina 15: o son e as cualidades do son (a altura, a duración e a intensidade). Teñen subliñado o que traballamos na clase.', leccion: 'musica1' },
     { fecha: '2026-11-13', tipo: 'examen', materia: 'tecnoloxia', titulo: 'Examen de Tecnología: electricidad', nota: 'Solo ejercicios y problemas.', leccion: 'electricidad' },
   ],
-  olivia: [{ fecha: '2026-11-12', tipo: 'examen', materia: 'lengua-castellana', titulo: 'Examen de Lengua: unidad 2', nota: '¿Somos iguales?: antónimos, sonido G suave, la oración, sujeto y predicado.', leccion: 'iguales' }],
+  olivia: [
+    { fecha: '2026-11-12', tipo: 'examen', materia: 'lengua-castellana', titulo: 'Examen de Lengua: unidad 2', nota: '¿Somos iguales?: antónimos, sonido G suave, la oración, sujeto y predicado.', leccion: 'iguales' },
+    { fecha: '2026-11-16', tipo: 'examen', materia: 'lingua-galega', titulo: 'Exame de Lingua Galega: unidade 2', nota: 'Somos o que comemos: o son K, as sílabas, as clases de palabras, o dicionario e a noticia.', leccion: 'comemos' },
+  ],
 }
 
 /** La fecha como día local, sin horas. */
