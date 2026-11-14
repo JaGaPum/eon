@@ -156,7 +156,10 @@ export const CURSOS: Curso[] = [
         id: 'frances',
         nombre: 'Francés',
         icono: '🌍',
-        lecciones: [{ id: 'unite1', titulo: 'Unité 1 · La famille, le corps, les métiers', resumen: 'Verbos en -er, familia, cuerpo, profesiones y preguntas.' }],
+        lecciones: [
+          { id: 'unite1', titulo: 'Unité 1 · La famille, le corps, les métiers', resumen: 'Verbos en -er, familia, cuerpo, profesiones y preguntas.' },
+          { id: 'unite2', titulo: 'Unité 2 · La maison', resumen: 'Las piezas de la casa, los muebles, describir la habitación y los verbos pronominales.' },
+        ],
       },
       {
         id: 'tecnoloxia',
