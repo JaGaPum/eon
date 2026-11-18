@@ -104,8 +104,8 @@ export function Inicio() {
             className="cristal flex flex-col items-center gap-3 border-indigo-300/50 p-5 hover:bg-white/[0.12]"
           >
             <img src={a.imagen} alt="" className="aspect-square w-full max-w-44 rounded-full bg-white/10 object-cover ring-4 ring-white/20" />
-            <b className="text-2xl text-white">{a.nombre}</b>
-            <span className="text-sm text-indigo-200">{a.etapa}</span>
+            <b className="text-center text-2xl text-white">{a.nombre}</b>
+            <span className="text-center text-sm text-indigo-200">{a.etapa}</span>
           </motion.a>
         ))}
       </div>

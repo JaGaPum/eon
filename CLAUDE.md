@@ -1,6 +1,6 @@
 # Eón
 
-Web de estudio para tres alumnos de la familia: **Mateo** (2.º ESO), su primo **Pablo** (mismo curso, ve los cursos de Mateo con su progreso aparte) y **Olivia** (3.º de Primaria). Viven en Galicia. La usan en tablet, ordenador y móvil. El usuario es su padre: escríbele en castellano, sin jerga técnica.
+Web de estudio para cinco alumnos: **Mateo** (2.º ESO), su primo **Pablo** (mismo curso, ve los cursos de Mateo con su progreso aparte), **Olivia** (3.º de Primaria) y **Mateo González** e **Irene**, que ven los cursos de Olivia con su progreso aparte (`eon.progreso.mateog` y `eon.progreso.irene`). Viven en Galicia. La usan en tablet, ordenador y móvil. El usuario es su padre: escríbele en castellano, sin jerga técnica.
 
 ## Reglas de trabajo
 
