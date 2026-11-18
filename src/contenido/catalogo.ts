@@ -43,13 +43,14 @@ export interface Alumno {
 export const cursosDe = (a: Alumno) => a.cursosDe ?? a.id
 
 export const ALUMNOS: Alumno[] = [
-  { id: 'mateo', nombre: 'Mateo', imagen: '/alumnos/mateo.svg', etapa: 'Educación Secundaria' },
+  // En la pantalla de inicio salen por etapas y en este orden: primero Primaria, luego Secundaria.
   { id: 'olivia', nombre: 'Olivia', imagen: '/alumnos/olivia.svg', etapa: 'Educación Primaria' },
-  // El primo de Mateo: mismo curso, mismas lecciones, pero sus estrellas y notas van aparte.
-  { id: 'pablo', nombre: 'Pablo', imagen: '/alumnos/pablo.svg', etapa: 'Educación Secundaria', cursosDe: 'mateo', progreso: 'eon.progreso.pablo' },
   // Estudian lo mismo que Olivia, cada uno con su progreso aparte.
   { id: 'mateog', nombre: 'Mateo González', imagen: '/alumnos/mateog.svg', etapa: 'Educación Primaria', cursosDe: 'olivia', progreso: 'eon.progreso.mateog' },
   { id: 'irene', nombre: 'Irene', imagen: '/alumnos/irene.svg', etapa: 'Educación Primaria', cursosDe: 'olivia', progreso: 'eon.progreso.irene' },
+  { id: 'mateo', nombre: 'Mateo García', imagen: '/alumnos/mateo.svg', etapa: 'Educación Secundaria' },
+  // El primo de Mateo: mismo curso, mismas lecciones, pero sus estrellas y notas van aparte.
+  { id: 'pablo', nombre: 'Pablo', imagen: '/alumnos/pablo.svg', etapa: 'Educación Secundaria', cursosDe: 'mateo', progreso: 'eon.progreso.pablo' },
 ]
 
 const sinLecciones = (id: string, nombre: string, icono: string): Materia => ({ id, nombre, icono, lecciones: [] })

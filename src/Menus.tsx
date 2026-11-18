@@ -92,23 +92,27 @@ export function Inicio() {
         <p className="text-lg text-indigo-200">Un viaje por el conocimiento, a través del espacio y del tiempo.</p>
       </div>
       <h2 className="mt-10 text-center text-sm font-bold tracking-widest text-indigo-300 uppercase">¿Quién viaja hoy?</h2>
-      <div className="mx-auto mt-6 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-3">
-        {ALUMNOS.map((a, i) => (
-          <motion.a
-            key={a.id}
-            href={`#/${a.id}`}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-            whileHover={{ y: -6, scale: 1.03 }}
-            className="cristal flex flex-col items-center gap-3 border-indigo-300/50 p-5 hover:bg-white/[0.12]"
-          >
-            <img src={a.imagen} alt="" className="aspect-square w-full max-w-44 rounded-full bg-white/10 object-cover ring-4 ring-white/20" />
-            <b className="text-center text-2xl text-white">{a.nombre}</b>
-            <span className="text-center text-sm text-indigo-200">{a.etapa}</span>
-          </motion.a>
-        ))}
-      </div>
+      {[...new Set(ALUMNOS.map((a) => a.etapa))].map((etapa) => (
+        <section key={etapa} className="mx-auto mt-6 max-w-3xl">
+          <h3 className="mb-3 text-center text-lg font-bold text-white">{etapa}</h3>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {ALUMNOS.filter((a) => a.etapa === etapa).map((a) => (
+              <motion.a
+                key={a.id}
+                href={`#/${a.id}`}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: ALUMNOS.indexOf(a) * 0.08 }}
+                whileHover={{ y: -6, scale: 1.03 }}
+                className="cristal flex flex-col items-center gap-3 border-indigo-300/50 p-5 hover:bg-white/[0.12]"
+              >
+                <img src={a.imagen} alt="" className="aspect-square w-full max-w-44 rounded-full bg-white/10 object-cover ring-4 ring-white/20" />
+                <b className="text-center text-2xl text-white">{a.nombre}</b>
+              </motion.a>
+            ))}
+          </div>
+        </section>
+      ))}
     </>
   )
 }
