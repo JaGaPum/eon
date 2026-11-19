@@ -29,7 +29,7 @@ export const TAREFAS: Record<string, Tarefa[]> = {
   olivia: [
     { fecha: '2026-11-12', tipo: 'examen', materia: 'lengua-castellana', titulo: 'Examen de Lengua: unidad 2', nota: '¿Somos iguales?: antónimos, sonido G suave, la oración, sujeto y predicado.', leccion: 'iguales' },
     { fecha: '2026-11-16', tipo: 'examen', materia: 'lingua-galega', titulo: 'Exame de Lingua Galega: unidade 2', nota: 'Somos o que comemos: o son K, as sílabas, as clases de palabras, o dicionario e a noticia.', leccion: 'comemos' },
-    { fecha: '2026-11-19', tipo: 'examen', materia: 'matematicas', titulo: 'Examen de Matemáticas' },
+    { fecha: '2026-11-20', tipo: 'examen', materia: 'matematicas', titulo: 'Examen de Matemáticas: las restas', nota: 'Restas con llevadas, la prueba de la resta y problemas de dos pasos.', leccion: 'restas' },
   ],
 }
 

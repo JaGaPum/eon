@@ -33,6 +33,7 @@ import Ingles3, { avanceIngles3 } from './primaria/ingles/Unidade'
 import Musica1, { avanceMusica1 } from './musica/parcial1/Unidade'
 import Planeta, { avancePlaneta } from './primaria/natureza/Unidade'
 import Iguales, { avanceIguales } from './primaria/lengua/Unidade'
+import Restas, { avanceRestas } from './primaria/matematicas/restas/Unidade'
 import Electricidad, { avanceElectricidad } from './tecnologia/electricidad/Unidade'
 import Comemos, { avanceComemos } from './primaria/lingua/Unidade'
 import Unite2, { avanceUnite2 } from './idiomas/frances/unite2/Unite2'
@@ -71,6 +72,7 @@ const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; m
   musica1: { Compoñente: Musica1, avance: avanceMusica1 },
   planeta: { Compoñente: Planeta, avance: avancePlaneta },
   iguales: { Compoñente: Iguales, avance: avanceIguales },
+  restas: { Compoñente: Restas, avance: avanceRestas },
   electricidad: { Compoñente: Electricidad, avance: avanceElectricidad },
   comemos: { Compoñente: Comemos, avance: avanceComemos },
   unite2: { Compoñente: Unite2, avance: avanceUnite2 },

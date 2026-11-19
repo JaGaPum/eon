@@ -145,11 +145,22 @@ function PasoActivo({ p, n, hecho: listo }: { p: Exclude<PasoGuiado, { tipo: 'in
 }
 
 /** Resuelve conmigo: una serie de problemas que se contestan paso a paso. */
-export function ResuelveConmigo({ problemas, acabar }: { problemas: ProblemaGuiado[]; acabar: () => void }) {
+/** `fin`: lo que se dice al resolver cada problema; `todos`, al terminar la serie. */
+export function ResuelveConmigo({
+  problemas,
+  acabar,
+  fin: textoFin = 'Así se escribe en el examen: datos, fórmula, sustitución y resultado con su unidad.',
+  todos = '¡Muy bien! Has resuelto todos los problemas paso a paso.',
+}: {
+  problemas: ProblemaGuiado[]
+  acabar: () => void
+  fin?: ReactNode
+  todos?: ReactNode
+}) {
   const [i, setI] = useState(0)
   const [k, setK] = useState(0)
   const pr = problemas[i]
-  if (!pr) return <Burbulla ton="ben">¡Muy bien! Has resuelto todos los problemas paso a paso.</Burbulla>
+  if (!pr) return <Burbulla ton="ben">{todos}</Burbulla>
   // Los pasos que solo se leen se dan por hechos en cuanto se llega a ellos.
   let actual = k
   while (pr.pasos[actual]?.tipo === 'info') actual++
@@ -169,7 +180,7 @@ export function ResuelveConmigo({ problemas, acabar }: { problemas: ProblemaGuia
       {p && p.tipo !== 'info' && <PasoActivo key={`${i}-${actual}`} p={p} n={actual + 1} hecho={() => setK(actual + 1)} />}
       {fin && (
         <>
-          <Burbulla ton="ben">¡Resuelto! Así se escribe en el examen: datos, fórmula, sustitución y resultado con su unidad.</Burbulla>
+          <Burbulla ton="ben">¡Resuelto! {textoFin}</Burbulla>
           <button
             className="btn btn-primario min-h-14 w-full border-violet-600 bg-violet-600 text-xl hover:bg-violet-700"
             onClick={() => {
