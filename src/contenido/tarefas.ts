@@ -24,6 +24,14 @@ export const TAREFAS: Record<string, Tarefa[]> = {
     { fecha: '2026-11-03', tipo: 'examen', materia: 'musica', titulo: 'Examen', nota: 'Apuntes da primeira avaliación ata a páxina 15: o son e as cualidades do son (a altura, a duración e a intensidade). Teñen subliñado o que traballamos na clase.', leccion: 'musica1' },
     { fecha: '2026-11-13', tipo: 'examen', materia: 'tecnoloxia', titulo: 'Examen de Tecnología: electricidad', nota: 'Solo ejercicios y problemas.', leccion: 'electricidad' },
     { fecha: '2026-11-16', tipo: 'examen', materia: 'frances', titulo: 'Examen de Francés: la maison', nota: 'Las piezas de la casa y los muebles (libro p. 25; cuaderno pp. 22, 31 y 32) y los verbos pronominales.', leccion: 'unite2' },
+    // Exámenes globales de la 1.ª evaluación (calendario del colegio).
+    { fecha: '2026-11-26', tipo: 'examen', materia: 'ingles', titulo: 'Global de Inglés (1.ª evaluación)', nota: 'De 9:20 a 10:40.' },
+    { fecha: '2026-11-26', tipo: 'examen', materia: 'matematicas', titulo: 'Global de Matemáticas (1.ª evaluación)', nota: 'De 12:00 a 13:40.' },
+    { fecha: '2026-11-27', tipo: 'examen', materia: 'lengua-castellana', titulo: 'Global de Lengua Castellana (1.ª evaluación)', nota: 'De 9:20 a 10:40.' },
+    { fecha: '2026-11-27', tipo: 'examen', materia: 'fisica-quimica', titulo: 'Global de Física y Química (1.ª evaluación)', nota: 'De 12:20 a 13:40.' },
+    { fecha: '2026-11-30', tipo: 'examen', materia: 'lingua-galega', titulo: 'Global de Lingua Galega (1.ª avaliación)', nota: 'De 9:20 a 10:40.' },
+    { fecha: '2026-11-30', tipo: 'examen', materia: 'tecnoloxia', titulo: 'Global de Tecnoloxía e Dixitalización (1.ª evaluación)', nota: 'De 12:50 a 14:30.' },
+    { fecha: '2026-12-01', tipo: 'examen', materia: 'xeografia-historia', titulo: 'Global de Xeografía e Historia (1.ª avaliación)', nota: 'De 9:20 a 10:40.' },
   ],
   // Olivia, Mateo González e Irene van a la misma clase: los dos últimos ven estas mismas.
   olivia: [
