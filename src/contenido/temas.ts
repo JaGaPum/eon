@@ -1,6 +1,7 @@
 // Los temas de Matemáticas con paradas: qué ruta, qué paradas, qué preguntas y qué vídeos tiene cada uno.
 import type { Tema } from '../componentes/tema'
-import { RUTA_TEMA1, RUTA_TEMA2 } from './catalogo'
+import { RUTA_TEMA1, RUTA_TEMA2, RUTA_TEMA3 } from './catalogo'
+import { BANCOS3, IDS3 } from './tema3'
 import { BANCOS2, IDS2 } from './tema2'
 import { BANCOS, IDS } from './preguntas'
 import { BLOQUES, CLASE, TITULO, VIDEOS } from './tema1'
@@ -62,5 +63,37 @@ export const TEMA2: Tema = {
   ejercicios: IDS2,
   prefijo: 'tema2/',
   // Tres por parada: dos de la autoevaluación o de clase y una nueva.
+  examen: [2, 1],
+}
+
+export const TEMA3: Tema = {
+  ruta: RUTA_TEMA3,
+  titulo: 'Tema 3 · Potencias y raíces',
+  intro: 'Seis paradas en la ruta. Al final, la misión: un examen de todo el tema.',
+  bloques: [
+    {
+      titulo: 'Potencias',
+      estaciones: [
+        { id: 'signo', num: 1, titulo: 'Potencias y su signo', resumen: 'Base y exponente, el signo y la trampa del paréntesis.' },
+        { id: 'propiedades', num: 2, titulo: 'Operaciones con potencias', resumen: 'Misma base, mismo exponente, potencia de potencia y factores primos.' },
+        { id: 'negativos', num: 3, titulo: 'Exponente cero y negativo', resumen: 'Por qué a⁰ = 1, la inversa y las potencias de fracciones.' },
+      ],
+    },
+    {
+      titulo: 'Notación científica',
+      estaciones: [{ id: 'cientifica', num: 4, titulo: 'Notación científica', resumen: 'Números enormes y diminutos: escribir, operar y comparar.' }],
+    },
+    {
+      titulo: 'Raíces y combinadas',
+      estaciones: [
+        { id: 'raices', num: 5, titulo: 'Raíces cuadradas', resumen: 'Cuadrados perfectos, raíz entera y resto, y raíces de fracciones.' },
+        { id: 'combinadas', num: 6, titulo: 'Operaciones combinadas', resumen: 'La jerarquía con potencias, exponentes negativos y raíces.' },
+      ],
+    },
+  ],
+  bancos: BANCOS3,
+  videos: {},
+  ejercicios: IDS3,
+  prefijo: 'tema3/',
   examen: [2, 1],
 }

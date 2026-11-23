@@ -5,6 +5,7 @@ import { CampoEntero, ent, leerEntero } from './piezas'
 import { colorPrimo } from './visuales'
 import { TextoMat } from './mat'
 import { leer as leerFr, leerDecimal, mcdDe } from '../lib/fracciones'
+import { escribirCientifica, escribirPot, leerPot, mismaPotencia } from '../lib/potencias'
 
 export type Entrada =
   | 'numero'
@@ -26,6 +27,12 @@ export type Entrada =
   | { mixto: true }
   /** Un número decimal. `tol`: cuánto se puede separar del correcto; `unidad`: lo que va detrás (%, m, €). */
   | { decimal: true; tol?: number; unidad?: string }
+  /** Una sola potencia: base (entera, fracción o letra) y exponente. Vale cualquiera con el mismo exponente y valor. */
+  | { potencia: true }
+  /** Notación científica: el número (una cifra delante de la coma) y el exponente de 10. `tol`: margen relativo. */
+  | { cientifica: true; tol?: number; unidad?: string }
+  /** Varios enteros a la vez, cada uno con su etiqueta: «Raíz entera» y «Resto». */
+  | { enteros: string[] }
 
 export interface Pregunta {
   /** Único en toda la app: «parada:hoja-número». Vacío en los ejercicios generados. */
@@ -107,7 +114,28 @@ export function esCorrecta(q: Pregunta, resp: string | undefined): boolean {
     const x = leerDecimal(resp)
     return x !== null && Math.abs(x - Number(q.correcta)) <= (e.tol ?? 1e-9)
   }
+  if (typeof e === 'object' && 'potencia' in e) {
+    const a = leerPot(resp)
+    const c = leerPot(q.correcta)
+    return !!a && !!c && mismaPotencia(a, c)
+  }
+  if (typeof e === 'object' && 'cientifica' in e) {
+    const r = revisarCientifica(q, resp)
+    return r.valor && r.forma
+  }
   return resp === q.correcta
+}
+
+/** Una respuesta en notación científica: si vale lo mismo y si está bien escrita (una cifra, no nula, delante de la coma). */
+export function revisarCientifica(q: Pregunta, resp: string): { valor: boolean; forma: boolean } {
+  const e = q.entrada
+  const [m, x] = resp.split('|').map(Number)
+  const [cm, cx] = q.correcta.split('|').map(Number)
+  if (!Number.isFinite(m) || !Number.isFinite(x)) return { valor: false, forma: false }
+  // Se compara en logaritmos para no salirse de los números del ordenador con exponentes muy grandes.
+  const tol = typeof e === 'object' && 'cientifica' in e ? (e.tol ?? 1e-9) : 1e-9
+  const valor = m !== 0 && Math.sign(m) === Math.sign(cm) && Math.abs(Math.log10(Math.abs(m)) + x - (Math.log10(Math.abs(cm)) + cx)) <= Math.log10(1 + tol) + 1e-12
+  return { valor, forma: Math.abs(m) >= 1 && Math.abs(m) < 10 }
 }
 
 const VOLADOS = '⁰¹²³⁴⁵⁶⁷⁸⁹'
@@ -128,6 +156,18 @@ export function escribirRespuesta(q: Pregunta, resp: string): string {
     return resp
   }
   if (typeof e === 'object' && 'decimal' in e) return menos(resp.replace('.', ',')) + (e.unidad ? ` ${e.unidad}` : '')
+  if (typeof e === 'object' && 'potencia' in e) {
+    const p = leerPot(resp)
+    return p ? escribirPot(p) : resp || '—'
+  }
+  if (typeof e === 'object' && 'cientifica' in e) {
+    const [m, x] = resp.split('|').map(Number)
+    return Number.isFinite(m) && Number.isFinite(x) ? escribirCientifica({ m, e: x }) + (e.unidad ? ` ${e.unidad}` : '') : resp || '—'
+  }
+  if (typeof e === 'object' && 'enteros' in e) {
+    const vs = resp.split('|')
+    return e.enteros.map((et, k) => `${et}: ${vs[k] !== undefined && vs[k] !== '' ? ent(Number(vs[k])) : '—'}`).join(' · ')
+  }
   const pot = potenciasDe(resp)
   if (pot) return `${escribirPotencias(pot)} = ${valor(pot)}`
   if (e === 'numero' || 'numeroOPotencias' in e) return ent(Number(resp))
@@ -246,6 +286,7 @@ export function CampoRespuesta({ q, responder, boton = 'Comprobar' }: { q: Pregu
   if (e === 'numero') return campoNumero('Escribe solo el número. Si es negativo, pulsa ± para ponerle el signo menos.')
 
   if ('fraccion' in e || 'fracciones' in e || 'mixto' in e || 'decimal' in e) return <CampoFracciones q={q} responder={responder} boton={boton} />
+  if ('potencia' in e || 'cientifica' in e || 'enteros' in e) return <CampoPotencias q={q} responder={responder} boton={boton} />
 
   if ('numeroOPotencias' in e) {
     return (
@@ -445,6 +486,72 @@ function CampoFracciones({ q, responder, boton }: { q: Pregunta; responder: (res
               cambiar={(n2, d2) => setFs(fs.map((x, j): [string, string] => (j === k ? [n2, d2] : x)))}
             />
           ))
+        )}
+        <button className="btn btn-primario">{boton}</button>
+      </div>
+      {error && <p className="text-red-700">{error}</p>}
+    </form>
+  )
+}
+
+/** Los campos del Tema 3: una potencia (base y exponente), notación científica o varios enteros. */
+function CampoPotencias({ q, responder, boton }: { q: Pregunta; responder: (resp: string) => void; boton: string }) {
+  const e = q.entrada as Exclude<Entrada, 'numero'>
+  const [a, setA] = useState('')
+  const [b, setB] = useState('')
+  const [vs, setVs] = useState<string[]>(() => ('enteros' in e ? e.enteros.map(() => '') : []))
+  const [error, setError] = useState('')
+  const entero = (s: string) => leerEntero(s.replace('−', '-'))
+
+  function enviar(ev: FormEvent) {
+    ev.preventDefault()
+    if ('enteros' in e) {
+      const ns = vs.map(entero)
+      if (ns.some((x) => x === null)) return setError('Rellena todas las casillas con números enteros.')
+      return responder(ns.join('|'))
+    }
+    const x = entero(b)
+    if (x === null) return setError('El exponente tiene que ser un número entero (con − delante si es negativo).')
+    if ('cientifica' in e) {
+      const m = leerDecimal(a)
+      if (m === null) return setError('Escribe el número de delante con coma para los decimales, por ejemplo 2,18.')
+      return responder(`${m}|${x}`)
+    }
+    const base = a.replace(/\s+/g, '').replace('−', '-').replace(/^\((.*)\)$/, '$1')
+    if (!/^(-?\d+(\/\d+)?|[a-z])$/.test(base)) return setError('La base es un número entero (con − si es negativa), una fracción como 5/7 o una letra.')
+    responder(`${base}^${x}`)
+  }
+
+  const explicacion =
+    'enteros' in e
+      ? 'Escribe un número entero en cada casilla.'
+      : 'cientifica' in e
+        ? `Escribe el número con una sola cifra (que no sea 0) delante de la coma, y el exponente de 10 en la casilla pequeña (con − si es negativo).${e.unidad ? ` La unidad (${e.unidad}) no se escribe.` : ''}`
+        : 'Escribe la base (si es negativa, con su −; una fracción, con barra: 5/7) y el exponente en la casilla pequeña (con − si es negativo).'
+
+  return (
+    <form onSubmit={enviar} className="space-y-3">
+      <p className="text-sm text-slate-500">{explicacion}</p>
+      <div className="flex flex-wrap items-center gap-4">
+        {'enteros' in e ? (
+          e.enteros.map((et, k) => (
+            <label key={k} className="inline-flex items-center gap-2 font-semibold">
+              {et}
+              <input className="campo w-28" inputMode="numeric" aria-label={et} value={vs[k]} onChange={(ev) => setVs(vs.map((v, j) => (j === k ? ev.target.value : v)))} />
+            </label>
+          ))
+        ) : 'cientifica' in e ? (
+          <span className="inline-flex items-start gap-1 text-2xl font-bold">
+            <input className="campo mt-3 w-28" inputMode="decimal" aria-label="Número de delante" value={a} onChange={(ev) => setA(ev.target.value)} />
+            <span className="mt-5">· 10</span>
+            <input className="campo h-9 w-16 text-base" aria-label="Exponente de 10" value={b} onChange={(ev) => setB(ev.target.value)} />
+            {e.unidad && <span className="mt-5 ml-1 text-xl">{e.unidad}</span>}
+          </span>
+        ) : (
+          <span className="inline-flex items-start gap-1 text-2xl font-bold">
+            <input className="campo mt-3 w-24" aria-label="Base" value={a} onChange={(ev) => setA(ev.target.value)} />
+            <input className="campo h-9 w-16 text-base" aria-label="Exponente" value={b} onChange={(ev) => setB(ev.target.value)} />
+          </span>
         )}
         <button className="btn btn-primario">{boton}</button>
       </div>

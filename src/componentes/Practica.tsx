@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react'
 import type { Progreso } from '../lib/progreso'
 import { Aviso, type Mensaje } from './visuales'
 import { TextoMat } from './mat'
-import { CampoRespuesta, esCorrecta, escribirRespuesta, revisarFracciones, type Pregunta } from './Respuesta'
+import { CampoRespuesta, esCorrecta, escribirRespuesta, revisarCientifica, revisarFracciones, type Pregunta } from './Respuesta'
 
 export type { Entrada, Pregunta } from './Respuesta'
 
@@ -42,6 +42,19 @@ function falloGenerico(q: Pregunta, respuesta: string): ReactNode {
     return bien === 1 ? 'El primero está bien. Revisa a partir de ahí.' : `Los ${bien} primeros están bien. Revisa a partir de ahí.`
   }
   if (typeof e === 'object' && 'primos' in e) return 'Esos no son sus factores primos. Comprueba que al multiplicarlos sale el número.'
+  if (typeof e === 'object' && 'cientifica' in e) {
+    const r = revisarCientifica(q, respuesta)
+    if (r.valor && !r.forma) return 'Vale lo mismo, pero no está en notación científica: delante de la coma tiene que quedar una sola cifra, que no sea 0.'
+    const [m, x] = respuesta.split('|').map(Number)
+    const [cm, cx] = q.correcta.split('|').map(Number)
+    if (Math.abs(m - cm) < 1e-9 && x !== cx) return `El número de delante está bien; revisa el exponente de 10${Math.sign(x) !== Math.sign(cx) && cx !== 0 ? ': fíjate en si es positivo (número grande) o negativo (número pequeño)' : ''}.`
+  }
+  if (typeof e === 'object' && 'potencia' in e) {
+    const [b, x] = respuesta.split('^')
+    const [cb, cx] = q.correcta.split('^')
+    if (b === cb && x !== cx) return 'La base está bien; revisa el exponente. ¿Tocaba sumar, restar o multiplicar los exponentes?'
+    if (b !== cb && x === cx && cb.replace('-', '') !== b.replace('-', '')) return 'El exponente está bien; revisa la base.'
+  }
   if (typeof e === 'object' && ('fraccion' in e || 'fracciones' in e || 'mixto' in e)) {
     const r = revisarFracciones(q, respuesta)
     if (r.valor && !r.forma) {

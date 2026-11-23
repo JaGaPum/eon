@@ -30,6 +30,27 @@ export function ExprFr({ toks, tocar, grande }: { toks: Tok[]; tocar?: (n: NodoF
               <span className="px-1 whitespace-nowrap">{t.abajo}</span>
             </span>
           )
+        if (t.k === 'rad') {
+          const listo = t.toks.length === 1 && t.toks[0].k === 'fr'
+          return (
+            <span key={i} className={`inline-flex items-stretch ${fondo(t.m)}`}>
+              {tocar && listo ? (
+                <button
+                  onClick={() => tocar(t.nodo)}
+                  className={`mx-0.5 inline-flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-lg border-2 px-1 text-indigo-700 hover:bg-indigo-100 ${t.m ? 'border-amber-500 bg-amber-200' : 'border-indigo-300 bg-indigo-50'}`}
+                  aria-label="Hacer la raíz"
+                >
+                  √
+                </button>
+              ) : (
+                <span className="self-center text-[1.2em] leading-none">√</span>
+              )}
+              <span className="border-t-2 border-current pt-0.5 pl-0.5">
+                <ExprFr toks={t.toks} tocar={tocar} />
+              </span>
+            </span>
+          )
+        }
         if (t.k === 'op' && tocar)
           return (
             <button

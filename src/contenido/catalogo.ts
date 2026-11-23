@@ -126,6 +126,8 @@ export const CURSOS: Curso[] = [
         lecciones: [
           { id: 'tema1', titulo: 'Tema 1 · Números enteros y divisibilidad', resumen: 'Divisibilidad, m.c.d. y m.c.m., enteros y operaciones combinadas.' },
           { id: 'tema2', titulo: 'Tema 2 · Fracciones y decimales', resumen: 'Equivalentes, operaciones y combinadas, decimales periódicos y aproximaciones.' },
+          { id: 'tema3', titulo: 'Tema 3 · Potencias y raíces', resumen: 'El signo, las propiedades, exponentes negativos, notación científica, raíces y combinadas.' },
+          { id: 'global1', titulo: 'Repaso para el global · Temas 1, 2 y 3', resumen: 'Todo mezclado como en el examen, los fallos que vuelven y un simulacro con nota.' },
         ],
       },
       {
@@ -192,3 +194,4 @@ export const CURSOS: Curso[] = [
 /** Dirección del Tema 1 de Matemáticas de 2º, de la que cuelgan sus ocho paradas. */
 export const RUTA_TEMA1 = '#/2eso/matematicas/tema1'
 export const RUTA_TEMA2 = '#/2eso/matematicas/tema2'
+export const RUTA_TEMA3 = '#/2eso/matematicas/tema3'

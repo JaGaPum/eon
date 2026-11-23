@@ -26,7 +26,7 @@ export const TAREFAS: Record<string, Tarefa[]> = {
     { fecha: '2026-11-16', tipo: 'examen', materia: 'frances', titulo: 'Examen de Francés: la maison', nota: 'Las piezas de la casa y los muebles (libro p. 25; cuaderno pp. 22, 31 y 32) y los verbos pronominales.', leccion: 'unite2' },
     // Exámenes globales de la 1.ª evaluación (calendario del colegio).
     { fecha: '2026-11-26', tipo: 'examen', materia: 'ingles', titulo: 'Global de Inglés (1.ª evaluación)', nota: 'De 9:20 a 10:40.' },
-    { fecha: '2026-11-26', tipo: 'examen', materia: 'matematicas', titulo: 'Global de Matemáticas (1.ª evaluación)', nota: 'De 12:00 a 13:40.' },
+    { fecha: '2026-11-26', tipo: 'examen', materia: 'matematicas', titulo: 'Global de Matemáticas (1.ª evaluación)', nota: 'De 12:00 a 13:40. Entran los temas 1, 2 y 3.', leccion: 'global1' },
     { fecha: '2026-11-27', tipo: 'examen', materia: 'lengua-castellana', titulo: 'Global de Lengua Castellana (1.ª evaluación)', nota: 'De 9:20 a 10:40.' },
     { fecha: '2026-11-27', tipo: 'examen', materia: 'fisica-quimica', titulo: 'Global de Física y Química (1.ª evaluación)', nota: 'De 12:20 a 13:40.' },
     { fecha: '2026-11-30', tipo: 'examen', materia: 'lingua-galega', titulo: 'Global de Lingua Galega (1.ª avaliación)', nota: 'De 9:20 a 10:40.' },

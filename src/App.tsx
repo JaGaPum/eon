@@ -4,7 +4,14 @@ import type { PropsParada } from './componentes/Parada'
 import { Musica } from './componentes/Musica'
 import { Examen } from './componentes/Prueba'
 import { ContextoTema, type Tema } from './componentes/tema'
-import { TEMA1, TEMA2 } from './contenido/temas'
+import { TEMA1, TEMA2, TEMA3 } from './contenido/temas'
+import Signo from './paradas/tema3/Signo'
+import Propiedades from './paradas/tema3/Propiedades'
+import Negativos from './paradas/tema3/Negativos'
+import Cientifica from './paradas/tema3/Cientifica'
+import Raices from './paradas/tema3/Raices'
+import Combinadas3 from './paradas/tema3/Combinadas'
+import Global1, { avanceGlobal1 } from './repaso/Global'
 import Fracciones from './paradas/tema2/Fracciones'
 import Comparar from './paradas/tema2/Comparar'
 import Operaciones from './paradas/tema2/Operaciones'
@@ -57,6 +64,10 @@ const TEMAS: Record<string, { tema: Tema; paradas: Record<string, ComponentType<
     tema: TEMA2,
     paradas: { fracciones: Fracciones, comparar: Comparar, operaciones: Operaciones, combinadas: Combinadas2, decimales: Decimales, aproximar: Aproximar },
   },
+  tema3: {
+    tema: TEMA3,
+    paradas: { signo: Signo, propiedades: Propiedades, negativos: Negativos, cientifica: Cientifica, raices: Raices, combinadas: Combinadas3 },
+  },
 }
 
 const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; modo?: string; progreso: Progreso }>; avance: (p: Progreso) => string }> = {
@@ -76,6 +87,7 @@ const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; m
   electricidad: { Compoñente: Electricidad, avance: avanceElectricidad },
   comemos: { Compoñente: Comemos, avance: avanceComemos },
   unite2: { Compoñente: Unite2, avance: avanceUnite2 },
+  global1: { Compoñente: Global1, avance: avanceGlobal1 },
 }
 
 /** El último alumno elegido en la pantalla de inicio, recordado en este dispositivo. */

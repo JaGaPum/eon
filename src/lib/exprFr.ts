@@ -1,7 +1,7 @@
 // Operaciones combinadas con fracciones: lee la expresión, decide qué toca según la jerarquía (paréntesis,
 // potencias, multiplicaciones y divisiones de izquierda a derecha, sumas y restas) y la resuelve paso a paso.
 // Se escribe como en el cuaderno: «3/4» es una fracción, «:» es dividir, «·» multiplicar y «^» elevar.
-import { div, fr, mcdDe, mcmLista, mul, pot, type Fr } from './fracciones'
+import { div, fr, inversa, mcdDe, mcmLista, mul, pot, type Fr } from './fracciones'
 
 export type NodoF =
   | { t: 'num'; v: Fr }
@@ -9,7 +9,8 @@ export type NodoF =
   | { t: 'sum'; items: { s: 1 | -1; n: NodoF }[] }
   | { t: 'prod'; op: '*' | '/'; a: NodoF; b: NodoF }
   | { t: 'pow'; a: NodoF; e: number }
-  | { t: 'raiz'; r: number }
+  /** Raíz cuadrada de un número, de una fracción o de lo que hay dentro de un paréntesis: √36, √(4/81), √(5² − 4²). */
+  | { t: 'raiz'; a: NodoF }
   /** Paréntesis (0), corchete (1) o llave (2). Nunca contiene un número suelto. */
   | { t: 'grp'; br: number; a: NodoF }
 
@@ -21,6 +22,8 @@ export type Tok =
   | { k: 'frs'; arriba: string; abajo: string; m?: boolean }
   | { k: 'op'; s: string; nodo: NodoF; m?: boolean; sup?: boolean }
   | { k: 'sup'; s: string; m?: boolean }
+  /** Raíz con su raya encima de lo de dentro; el «√» se puede tocar. */
+  | { k: 'rad'; toks: Tok[]; nodo: NodoF; m?: boolean }
 
 const ABRE = '([{'
 const CIERRA = ')]}'
@@ -29,7 +32,7 @@ const VOLADOS = '⁰¹²³⁴⁵⁶⁷⁸⁹'
 export const volado = (e: number) =>
   String(e)
     .split('')
-    .map((c) => VOLADOS[Number(c)])
+    .map((c) => (c === '-' ? '⁻' : VOLADOS[Number(c)]))
     .join('')
 const signo = (v: number) => (v < 0 ? `−${-v}` : String(v))
 const conPar = (v: number) => (v < 0 ? `(−${-v})` : String(v))
@@ -73,20 +76,29 @@ export function analizarFr(entrada: string): NodoF {
     const a = atomo()
     if (s[i] !== '^') return a
     i++
-    const m = /^\d+/.exec(s.slice(i))
+    // El exponente puede ser negativo: 2^-3 o 2^(-3).
+    const m = /^(\(-\d+\)|-?\d+)/.exec(s.slice(i))
     if (!m) throw new Error('Después de ^ va el exponente, un número entero.')
     i += m[0].length
-    return { t: 'pow', a, e: Number(m[0]) }
+    return { t: 'pow', a, e: Number(m[0].replace(/[()]/g, '')) }
   }
   const atomo = (): NodoF => {
     if (s[i] === '√') {
       i++
+      if (s[i] === '(') {
+        i++
+        const a = expr()
+        if (s[i] !== ')') throw new Error('Hay un paréntesis sin cerrar o mal cerrado.')
+        i++
+        if (a.t === 'num') raizFr(a.v)
+        return { t: 'raiz', a }
+      }
       const m = /^\d+/.exec(s.slice(i))
-      if (!m) throw new Error('Después de √ va un número.')
+      if (!m) throw new Error('Después de √ va un número o un paréntesis: √36 o √(4/81).')
       i += m[0].length
-      const r = Number(m[0])
-      if (!Number.isInteger(Math.sqrt(r))) throw new Error(`√${r} no es exacta: aquí solo valen raíces exactas.`)
-      return { t: 'raiz', r }
+      // Una raíz que no es exacta se avisa ya al leerla.
+      raizFr(fr(Number(m[0])))
+      return { t: 'raiz', a: num(fr(Number(m[0]))) }
     }
     const br = i < s.length ? ABRE.indexOf(s[i]) : -1
     if (br >= 0) {
@@ -125,7 +137,7 @@ export function tokens(n: NodoF, marcado?: NodoF | null, inicio = true, m = fals
     case 'num':
       return [{ k: 'fr', v: n.v, m, paren: n.v.n < 0 && !inicio }]
     case 'raiz':
-      return [{ k: 'op', s: `√${n.r}`, nodo: n, m }]
+      return [{ k: 'rad', toks: tokens(n.a, marcado, true, m), nodo: n, m }]
     case 'grp':
       return [{ k: 'txt', s: ABRE[n.br], m }, ...tokens(n.a, marcado, true, m), { k: 'txt', s: CIERRA[n.br], m }]
     case 'pow': {
@@ -152,16 +164,25 @@ export function tokens(n: NodoF, marcado?: NodoF | null, inicio = true, m = fals
 export function escribirFr(n: NodoF): string {
   return tokens(n)
     .map((t) =>
-      t.k === 'fr' ? (t.paren ? `(${signo(t.v.n)}${t.v.d === 1 ? '' : `/${t.v.d}`})` : `${signo(t.v.n)}${t.v.d === 1 ? '' : `/${t.v.d}`}`) : t.k === 'frs' ? `${t.arriba}/${t.abajo}` : t.s,
+      plano(t),
     )
     .join('')
+}
+
+function plano(t: Tok): string {
+  if (t.k === 'fr') return t.paren ? `(${signo(t.v.n)}${t.v.d === 1 ? '' : `/${t.v.d}`})` : `${signo(t.v.n)}${t.v.d === 1 ? '' : `/${t.v.d}`}`
+  if (t.k === 'frs') return `${t.arriba}/${t.abajo}`
+  if (t.k === 'rad') {
+    const dentro = t.toks.map(plano).join('')
+    return /^\d+$/.test(dentro) ? `√${dentro}` : `√(${dentro})`
+  }
+  return t.s
 }
 
 // ---------- Qué toca ----------
 
 const listo = (n: NodoF): boolean => {
-  if (n.t === 'raiz') return true
-  if (n.t === 'pow') return n.a.t === 'num'
+  if (n.t === 'raiz' || n.t === 'pow') return n.a.t === 'num'
   if (n.t === 'prod') return n.a.t === 'num' && n.b.t === 'num'
   if (n.t === 'sum') return n.items.every((it) => it.n.t === 'num')
   return false
@@ -178,6 +199,9 @@ function grupos(n: NodoF): NodoF[] {
       return [...grupos(n.a), ...grupos(n.b)]
     case 'pow':
       return grupos(n.a)
+    // Lo de dentro de una raíz se resuelve antes, como un paréntesis.
+    case 'raiz':
+      return n.a.t === 'num' ? [] : [n]
     default:
       return []
   }
@@ -204,6 +228,7 @@ const prioridad = (n: NodoF) => (n.t === 'pow' || n.t === 'raiz' ? 0 : n.t === '
 export function siguienteFr(n: NodoF): NodoF | null {
   if (n.t === 'num') return null
   if (n.t === 'grp') return siguienteFr(n.a)
+  if (n.t === 'raiz' && n.a.t !== 'num') return siguienteFr(n.a)
   const g = grupos(n)
   if (g.length) return siguienteFr(g[0])
   const l = listas(n)
@@ -215,7 +240,7 @@ export function siguienteFr(n: NodoF): NodoF | null {
 /** Todas las operaciones que se pueden hacer ya sin saltarse la jerarquía (los paréntesis, en cualquier orden). */
 export function validasFr(n: NodoF): NodoF[] {
   if (n.t === 'num') return []
-  if (n.t === 'grp') return validasFr(n.a)
+  if (n.t === 'grp' || (n.t === 'raiz' && n.a.t !== 'num')) return validasFr(n.a)
   const g = grupos(n)
   const l = listas(n)
   if (g.length) return [...g.flatMap((x) => validasFr(x)), ...l.filter((x) => x.t === 'pow' || x.t === 'raiz')]
@@ -236,7 +261,8 @@ export function motivoFr(raiz: NodoF, x: NodoF): string | null {
           : y.t === 'sum'
             ? 'Antes hay que terminar lo de al lado.'
             : null
-  if (x.t === 'pow') return lado(x.a)
+  if (x.t === 'raiz') return 'Antes hay que resolver lo de dentro de la raíz.'
+  if (x.t === 'pow') return lado(x.a) ?? 'Antes hay que terminar lo de dentro.'
   if (x.t === 'prod') return x.a.t !== 'num' ? lado(x.a) : x.b.t !== 'num' ? lado(x.b) : 'Antes van las potencias.'
   if (x.t === 'sum') {
     const pend = x.items.map((it) => it.n).find((y) => y.t !== 'num')
@@ -269,12 +295,48 @@ function simplificado(n: number, d: number): Tok[] {
   return k > 1 && n !== 0 ? [sin, t(' = '), f(fr(n, d))] : [sin]
 }
 
+/** La raíz cuadrada exacta de una fracción (ya simplificada). Si no es exacta o es de un negativo, avisa. */
+export function raizFr(a0: Fr): Fr {
+  const a = fr(a0.n, a0.d)
+  if (a.n < 0) throw new Error('La raíz cuadrada de un número negativo no existe: ningún número multiplicado por sí mismo da negativo.')
+  const rn = Math.round(Math.sqrt(a.n))
+  const rd = Math.round(Math.sqrt(a.d))
+  if (rn * rn !== a.n || rd * rd !== a.d) throw new Error(`La raíz de ${a.d === 1 ? a.n : `${a.n}/${a.d}`} no es exacta: aquí solo valen raíces exactas.`)
+  return fr(rn, rd)
+}
+
 function hacer(x: NodoF): { v: Fr; cuenta: Tok[]; porque: string } {
   switch (x.t) {
-    case 'raiz':
-      return { v: fr(Math.sqrt(x.r)), cuenta: [t(`√${x.r} = ${Math.sqrt(x.r)}`)], porque: 'Las raíces, como las potencias, van antes que multiplicar, dividir, sumar y restar.' }
-    case 'pow': {
+    case 'raiz': {
       const a = (x.a as { v: Fr }).v
+      const v = raizFr(a)
+      const radical: Tok = { k: 'rad', toks: [f(a)], nodo: x }
+      const porque = 'Las raíces, como las potencias, van antes que multiplicar, dividir, sumar y restar.'
+      if (a.d === 1) return { v, cuenta: [radical, t(` = ${signo(v.n)}`)], porque }
+      const s0 = fr(a.n, a.d)
+      const simpl: Tok[] = s0.n !== a.n ? [{ k: 'rad', toks: [f(s0)], nodo: x }, t(' = ')] : []
+      return {
+        v,
+        cuenta: [radical, t(' = '), ...simpl, fs(`√${s0.n}`, `√${s0.d}`), t(' = '), f(v)],
+        porque: `${porque} La raíz de una fracción es la raíz del numerador entre la raíz del denominador.`,
+      }
+    }
+    case 'pow': {
+      const a0 = (x.a as { v: Fr }).v
+      const conParen = (y: Fr): Tok[] => (y.d === 1 && y.n >= 0 ? [f(y)] : [t('('), f(y), t(')')])
+      if (x.e < 0) {
+        if (a0.n === 0) throw new Error('0 no se puede elevar a un exponente negativo.')
+        const a = inversa(a0)
+        const v = pot(a, -x.e)
+        const fin: Tok[] = a.d === 1 ? [t(signo(v.n))] : [fs(`${conPar(a.n)}${volado(-x.e)}`, `${a.d}${volado(-x.e)}`), t(' = '), f(v)]
+        const cuenta: Tok[] = [...conParen(a0), t(volado(x.e) + ' = '), ...conParen(a), t(volado(-x.e) + ' = '), ...fin]
+        return { v, cuenta, porque: 'Un exponente negativo se quita dando la vuelta a la base (su inversa) y cambiando el signo del exponente.' }
+      }
+      if (x.e === 0) {
+        if (a0.n === 0) throw new Error('0⁰ no tiene valor.')
+        return { v: fr(1), cuenta: [...conParen(a0), t('⁰ = 1')], porque: 'Cualquier número (menos el 0) elevado a 0 da 1.' }
+      }
+      const a = a0
       const v = pot(a, x.e)
       const base: Tok[] = a.d === 1 && a.n >= 0 ? [f(a)] : [t('('), f(a), t(')')]
       const cuenta: Tok[] =
@@ -342,7 +404,8 @@ function sustituir(n: NodoF, x: NodoF, v: Fr): NodoF {
       const a = sustituir(n.a, x, v)
       return a.t === 'num' ? a : a === n.a ? n : { ...n, a }
     }
-    case 'pow': {
+    case 'pow':
+    case 'raiz': {
       const a = sustituir(n.a, x, v)
       return a === n.a ? n : { ...n, a }
     }
@@ -377,6 +440,7 @@ function dentroDe(raiz: NodoF, x: NodoF): number | null {
       ir(n.a, br)
       ir(n.b, br)
     } else if (n.t === 'pow') ir(n.a, br)
+    else if (n.t === 'raiz') ir(n.a, -1)
   }
   ir(raiz, null)
   return res
@@ -391,7 +455,7 @@ export function aplicarFr(raiz: NodoF, x: NodoF): { raiz: NodoF; paso: PasoFr } 
     raiz: nueva,
     paso: {
       antes: tokens(raiz, x),
-      porque: (dentro !== null ? `${DENTRO[dentro]}. ` : '') + h.porque,
+      porque: (dentro === -1 ? 'Dentro de la raíz. ' : dentro !== null ? `${DENTRO[dentro]}. ` : '') + h.porque,
       cuenta: h.cuenta,
       despues: tokens(nueva),
     },
