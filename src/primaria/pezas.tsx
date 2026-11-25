@@ -225,12 +225,21 @@ export function Son({ texto, grande }: { texto: string; grande?: boolean }) {
 /** Una palabra o frase en la lengua que se estudia, con su botón para oírla. */
 export function Fr({ children }: { children: string }) {
   const lang = useLang()
+  // Las frases largas pueden partirse en el móvil; la última palabra va siempre pegada al 🔊.
+  const corte = children.lastIndexOf(' ') + 1
   return (
-    <span className="whitespace-nowrap">
-      <b className="text-violet-800" lang={lang}>
-        {children}
-      </b>
-      <Son texto={children} />
+    <span>
+      {corte > 0 && (
+        <b className="text-violet-800" lang={lang}>
+          {children.slice(0, corte)}
+        </b>
+      )}
+      <span className="whitespace-nowrap">
+        <b className="text-violet-800" lang={lang}>
+          {children.slice(corte)}
+        </b>
+        <Son texto={children} />
+      </span>
     </span>
   )
 }
@@ -933,9 +942,12 @@ export const notaSobre10 = (acertos: number, total: number) => Math.round((acert
  * de exercicios sen estrelas que se pode repetir (sen pantalla de inicio e sen gardar marca). Con `xerar`, as
  * preguntas sácaas esa función (o exame colle as mesmas de cada parada) e o final dá a nota sobre 10.
  */
+// Lista vacía fija: si fuese `[]` en los parámetros, sería otra en cada render y el examen se barajaría al responder.
+const SEN_PREGUNTAS: Pregunta[] = []
+
 export function Proba({
   id,
-  preguntas = [],
+  preguntas = SEN_PREGUNTAS,
   cantas = PREGUNTAS_PROBA,
   practica,
   xerar,
@@ -1052,9 +1064,10 @@ export function Proba({
   const solucion = p.tipo === 'escribe' ? p.respostas[0] : undefined
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between text-sm font-bold text-slate-500">
-        <span>{t.pregunta(k + 1, lista.length)}</span>
-        <span className="flex gap-1">
+      <div className="flex items-center justify-between gap-3 text-sm font-bold text-slate-500">
+        <span className="shrink-0">{t.pregunta(k + 1, lista.length)}</span>
+        {/* Con muchas preguntas, los puntos bajan de línea en vez de ensanchar la tarjeta. */}
+        <span className="flex min-w-0 flex-wrap justify-end gap-1">
           {lista.map((_, i) => (
             <span key={i} className={`h-2.5 w-4 rounded-full sm:w-6 ${i < k ? 'bg-violet-400' : i === k ? 'bg-violet-700' : 'bg-slate-200'}`} />
           ))}

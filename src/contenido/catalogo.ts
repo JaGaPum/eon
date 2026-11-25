@@ -161,7 +161,10 @@ export const CURSOS: Curso[] = [
         id: 'ingles',
         nombre: 'Inglés',
         icono: '🛰️',
-        lecciones: [{ id: 'module1', titulo: 'Module 1 · First exam', resumen: 'Subject/object questions, How much/many…, There is/are and quantifiers, Present Simple/Continuous.' }],
+        lecciones: [
+          { id: 'module1', titulo: 'Module 1 · First exam', resumen: 'Subject/object questions, How much/many…, There is/are and quantifiers, Present Simple/Continuous.' },
+          { id: 'module2', titulo: 'Module 2 · Global', resumen: 'Past Simple, Present and Past Simple Passive, used to, y el simulacro del global (Modules 1 y 2).', apuntes: 'apuntes/ingles-global1.pdf' },
+        ],
       },
       {
         id: 'frances',
