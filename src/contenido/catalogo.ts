@@ -127,7 +127,7 @@ export const CURSOS: Curso[] = [
           { id: 'tema1', titulo: 'Tema 1 · Números enteros y divisibilidad', resumen: 'Divisibilidad, m.c.d. y m.c.m., enteros y operaciones combinadas.' },
           { id: 'tema2', titulo: 'Tema 2 · Fracciones y decimales', resumen: 'Equivalentes, operaciones y combinadas, decimales periódicos y aproximaciones.' },
           { id: 'tema3', titulo: 'Tema 3 · Potencias y raíces', resumen: 'El signo, las propiedades, exponentes negativos, notación científica, raíces y combinadas.' },
-          { id: 'global1', titulo: 'Repaso para el global · Temas 1, 2 y 3', resumen: 'Todo mezclado como en el examen, los fallos que vuelven y un simulacro con nota.' },
+          { id: 'global1', titulo: 'Repaso para el global · Temas 1, 2 y 3', resumen: 'Todo mezclado como en el examen, los fallos que vuelven y un simulacro con nota.', apuntes: 'apuntes/matematicas-global1.pdf' },
         ],
       },
       {
