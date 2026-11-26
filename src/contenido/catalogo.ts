@@ -158,7 +158,10 @@ export const CURSOS: Curso[] = [
         id: 'lengua-castellana',
         nombre: 'Lengua Castellana y Literatura',
         icono: '✒️',
-        lecciones: [{ id: 'lengua1', titulo: 'Parcial · Unidades 1 y 2', resumen: 'Funciones del lenguaje, sílabas, unidades de la lengua, acentuación y significado.' }],
+        lecciones: [
+          { id: 'lengua1', titulo: 'Parcial · Unidades 1 y 2', resumen: 'Funciones del lenguaje, sílabas, unidades de la lengua, acentuación y significado.' },
+          { id: 'lengua2', titulo: 'Global 1.ª evaluación', resumen: 'Lenguas de España, el español en el mundo, niveles del lenguaje, relaciones semánticas, funciones, el resumen y el simulacro del global.', apuntes: 'apuntes/lengua-global1.pdf' },
+        ],
       },
       {
         id: 'ingles',

@@ -32,6 +32,7 @@ import Paisaxes, { avancePaisaxes } from './primaria/paisaxes/Unidade'
 import Unite1, { avanceUnite1 } from './idiomas/frances/Unite'
 import Galego1, { avanceGalego1 } from './idiomas/galego/Unidade'
 import Galego2, { avanceGalego2 } from './idiomas/galego/global1/Global'
+import Lengua2, { avanceLengua2 } from './lengua/global1/Global'
 import Module1, { avanceModule1 } from './idiomas/ingles/Module1'
 import Module2, { avanceModule2 } from './idiomas/ingles/module2/Module2'
 import Historia1, { avanceHistoria1 } from './historia/parcial1/Unidade'
@@ -82,6 +83,7 @@ const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; m
   parcial1: { Compoñente: Historia1, avance: avanceHistoria1 },
   historia2: { Compoñente: Historia2, avance: avanceHistoria2 },
   lengua1: { Compoñente: Lengua1, avance: avanceLengua1 },
+  lengua2: { Compoñente: Lengua2, avance: avanceLengua2 },
   fq1: { Compoñente: FQ1, avance: avanceFQ1 },
   ingles3: { Compoñente: Ingles3, avance: avanceIngles3 },
   musica1: { Compoñente: Musica1, avance: avanceMusica1 },
