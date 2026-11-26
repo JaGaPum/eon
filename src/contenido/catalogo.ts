@@ -151,7 +151,7 @@ export const CURSOS: Curso[] = [
         icono: '📜',
         lecciones: [
           { id: 'proba1', titulo: 'Proba de aula 1 · Textos e acentuación', resumen: 'Descrición, tema e título, resumo, definir, regras de acentuación e diacríticos.' },
-          { id: 'galego2', titulo: 'Unidade 2 · Global', resumen: 'Descrición e narración, variedades e bloques, o adxectivo, homónimas e falsos amigos, vocabulario e o simulacro do global.', apuntes: 'apuntes/galego-global1.pdf' },
+          { id: 'galego2', titulo: 'Global 1.ª avaliación · Unidades 1 e 2', resumen: 'Descrición e narración, variedades e bloques, o adxectivo, homónimas e falsos amigos, vocabulario e o simulacro do global.', apuntes: 'apuntes/galego-global1.pdf' },
         ],
       },
       {

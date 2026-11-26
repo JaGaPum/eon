@@ -393,7 +393,7 @@ ${corpoHTML}
   <li>Explicar por que leva til unha palabra e usar os diacríticos.</li>
   <li>O vocabulario do corpo, do pé e a perna, das aves e os 20 castelanismos.</li>
 </ul>
-<p class="pe">Para practicar con preguntas novas e facer o simulacro con nota: Eón → Mateo → 2.º ESO → Lingua Galega → Unidade 2 · Global → «Simulacro do global».</p>
+<p class="pe">Para practicar con preguntas novas e facer o simulacro con nota: Eón → Mateo → 2.º ESO → Lingua Galega → Global 1.ª avaliación → «Simulacro do global».</p>
 
 <h1 class="salto">Solucións</h1>
 ${solucions}
