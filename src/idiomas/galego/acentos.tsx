@@ -346,7 +346,7 @@ const DIACRITICO_TARXETAS: Tarxeta[] = [
 
 const DIACRITICO_PREG: Pregunta[] = [
   ...PARES.flatMap((p) => [fraseQ(p, true), fraseQ(p, false)]),
-  ...PARES.map((p) => elixe(<>Que significa <b>{p.con}</b> (con til)?</>, p.conSignif, barallar(PARES.filter((x) => x !== p)).slice(0, 2).map((x) => x.conSignif), <>E «{p.sen}», sen til: {p.senSignif}.</>)),
+  ...PARES.map((p) => elixe(<>Que significa <b>{p.con}</b> (con til)?</>, p.conSignif, barallar([...new Set(PARES.map((x) => x.conSignif))].filter((x) => x !== p.conSignif)).slice(0, 2), <>E «{p.sen}», sen til: {p.senSignif}.</>)),
 ]
 
 const xogosDia = (d: number): Xogo => ({
@@ -366,7 +366,7 @@ const DIACRITICO_XOGOS: Xogo[] = [
     titulo: 'Que significa?',
     icono: '🔗',
     explica: 'Une cada diacrítico co seu significado.',
-    crear: (acabar) => <Une pares={barallar(PARES).slice(0, 7).map((p) => ({ palabra: p.con, significado: p.conSignif }))} acabar={acabar} />,
+    crear: (acabar) => <Une pares={barallar(PARES).filter((p, i, xs) => xs.findIndex((x) => x.conSignif === p.conSignif) === i).slice(0, 7).map((p) => ({ palabra: p.con, significado: p.conSignif }))} acabar={acabar} />,
   },
   {
     id: 'frases',

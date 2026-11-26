@@ -149,7 +149,10 @@ export const CURSOS: Curso[] = [
         id: 'lingua-galega',
         nombre: 'Lingua Galega e Literatura',
         icono: '📜',
-        lecciones: [{ id: 'proba1', titulo: 'Proba de aula 1 · Textos e acentuación', resumen: 'Descrición, tema e título, resumo, definir, regras de acentuación e diacríticos.' }],
+        lecciones: [
+          { id: 'proba1', titulo: 'Proba de aula 1 · Textos e acentuación', resumen: 'Descrición, tema e título, resumo, definir, regras de acentuación e diacríticos.' },
+          { id: 'galego2', titulo: 'Unidade 2 · Global', resumen: 'Descrición e narración, variedades e bloques, o adxectivo, homónimas e falsos amigos, vocabulario e o simulacro do global.', apuntes: 'apuntes/galego-global1.pdf' },
+        ],
       },
       {
         id: 'lengua-castellana',

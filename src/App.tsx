@@ -31,6 +31,7 @@ import Combinadas from './paradas/Combinadas'
 import Paisaxes, { avancePaisaxes } from './primaria/paisaxes/Unidade'
 import Unite1, { avanceUnite1 } from './idiomas/frances/Unite'
 import Galego1, { avanceGalego1 } from './idiomas/galego/Unidade'
+import Galego2, { avanceGalego2 } from './idiomas/galego/global1/Global'
 import Module1, { avanceModule1 } from './idiomas/ingles/Module1'
 import Module2, { avanceModule2 } from './idiomas/ingles/module2/Module2'
 import Historia1, { avanceHistoria1 } from './historia/parcial1/Unidade'
@@ -75,6 +76,7 @@ const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; m
   paisaxes: { Compoñente: Paisaxes, avance: avancePaisaxes },
   unite1: { Compoñente: Unite1, avance: avanceUnite1 },
   proba1: { Compoñente: Galego1, avance: avanceGalego1 },
+  galego2: { Compoñente: Galego2, avance: avanceGalego2 },
   module1: { Compoñente: Module1, avance: avanceModule1 },
   module2: { Compoñente: Module2, avance: avanceModule2 },
   parcial1: { Compoñente: Historia1, avance: avanceHistoria1 },
