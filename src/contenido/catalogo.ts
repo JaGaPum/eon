@@ -134,7 +134,10 @@ export const CURSOS: Curso[] = [
         id: 'fisica-quimica',
         nombre: 'Física e Química',
         icono: '⚛️',
-        lecciones: [{ id: 'fq1', titulo: 'Primer parcial · La materia, la medida y los estados', resumen: 'Factores de conversión, densidad, cambios de estado y sus gráficas, y ley de Boyle-Mariotte.', apuntes: 'apuntes/fisica-quimica-parcial1.pdf' }],
+        lecciones: [
+          { id: 'fq1', titulo: 'Primer parcial · La materia, la medida y los estados', resumen: 'Factores de conversión, densidad, cambios de estado y sus gráficas, y ley de Boyle-Mariotte.', apuntes: 'apuntes/fisica-quimica-parcial1.pdf' },
+          { id: 'fq2', titulo: 'Global 1.ª evaluación', resumen: 'Leyes de Gay-Lussac y Charles, fusión y ebullición, la materia, disoluciones, átomos, tabla periódica y el simulacro del global.', apuntes: 'apuntes/fisica-quimica-global1.pdf' },
+        ],
       },
       {
         id: 'xeografia-historia',

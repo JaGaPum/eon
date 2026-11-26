@@ -28,7 +28,7 @@ export const TAREFAS: Record<string, Tarefa[]> = {
     { fecha: '2026-11-26', tipo: 'examen', materia: 'ingles', titulo: 'Global de Inglés (1.ª evaluación)', nota: 'De 9:20 a 10:40. Entran los Modules 1 y 2.', leccion: 'module2' },
     { fecha: '2026-11-26', tipo: 'examen', materia: 'matematicas', titulo: 'Global de Matemáticas (1.ª evaluación)', nota: 'De 12:00 a 13:40. Entran los temas 1, 2 y 3.', leccion: 'global1' },
     { fecha: '2026-11-27', tipo: 'examen', materia: 'lengua-castellana', titulo: 'Global de Lengua Castellana (1.ª evaluación)', nota: 'De 9:20 a 10:40. Entra todo lo de la evaluación.', leccion: 'lengua2' },
-    { fecha: '2026-11-27', tipo: 'examen', materia: 'fisica-quimica', titulo: 'Global de Física y Química (1.ª evaluación)', nota: 'De 12:20 a 13:40.' },
+    { fecha: '2026-11-27', tipo: 'examen', materia: 'fisica-quimica', titulo: 'Global de Física y Química (1.ª evaluación)', nota: 'De 12:20 a 13:40.', leccion: 'fq2' },
     { fecha: '2026-11-30', tipo: 'examen', materia: 'lingua-galega', titulo: 'Global de Lingua Galega (1.ª avaliación)', nota: 'De 9:20 a 10:40. Entran as unidades 1 e 2.', leccion: 'galego2' },
     { fecha: '2026-11-30', tipo: 'examen', materia: 'tecnoloxia', titulo: 'Global de Tecnoloxía e Dixitalización (1.ª evaluación)', nota: 'De 12:50 a 14:30.' },
     { fecha: '2026-12-01', tipo: 'examen', materia: 'xeografia-historia', titulo: 'Global de Xeografía e Historia (1.ª avaliación)', nota: 'De 9:20 a 10:40.' },

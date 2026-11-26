@@ -884,7 +884,7 @@ export function Campo({ onEnviar, desactivado }: { onEnviar: (texto: string) => 
           autoComplete="off"
           spellCheck={false}
           lang={lang}
-          className="min-h-14 flex-1 rounded-2xl border-2 border-violet-200 bg-white px-4 text-xl font-semibold text-slate-800 outline-none focus:border-violet-500 disabled:bg-slate-50"
+          className="min-h-14 w-full min-w-0 flex-1 rounded-2xl border-2 border-violet-200 bg-white px-4 text-xl font-semibold text-slate-800 outline-none focus:border-violet-500 disabled:bg-slate-50"
         />
         <button className="btn btn-primario min-h-14 border-violet-600 bg-violet-600 px-5 text-lg hover:bg-violet-700" disabled={desactivado || !texto.trim()}>
           {t.comprobar}
@@ -1121,7 +1121,7 @@ export function Proba({
       )}
       {p.tipo === 'numero' && (
         <div className="flex items-center gap-2">
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <Campo key={k} desactivado={resposta !== null} onEnviar={(texto) => responder(texto, numeroBen(texto, p.valor, p.marxe) ? 'ben' : 'mal')} />
           </div>
           {p.unidade && <span className="text-xl font-bold text-slate-600">{p.unidade}</span>}

@@ -39,6 +39,7 @@ import Historia1, { avanceHistoria1 } from './historia/parcial1/Unidade'
 import Historia2, { avanceHistoria2 } from './historia/tema2/Unidade'
 import Lengua1, { avanceLengua1 } from './lengua/examen1/Unidade'
 import FQ1, { avanceFQ1 } from './ciencias/fq1/Unidade'
+import FQ2, { avanceFQ2 } from './ciencias/fq2/Global'
 import Ingles3, { avanceIngles3 } from './primaria/ingles/Unidade'
 import Musica1, { avanceMusica1 } from './musica/parcial1/Unidade'
 import Planeta, { avancePlaneta } from './primaria/natureza/Unidade'
@@ -85,6 +86,7 @@ const UNIDADES: Record<string, { Compoñente: ComponentType<{ parada?: string; m
   lengua1: { Compoñente: Lengua1, avance: avanceLengua1 },
   lengua2: { Compoñente: Lengua2, avance: avanceLengua2 },
   fq1: { Compoñente: FQ1, avance: avanceFQ1 },
+  fq2: { Compoñente: FQ2, avance: avanceFQ2 },
   ingles3: { Compoñente: Ingles3, avance: avanceIngles3 },
   musica1: { Compoñente: Musica1, avance: avanceMusica1 },
   planeta: { Compoñente: Planeta, avance: avancePlaneta },

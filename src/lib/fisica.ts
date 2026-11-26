@@ -198,3 +198,34 @@ export function tramos(s: Sustancia, puntos: Punto[]): string[] {
   }
   return r
 }
+
+// ——— Leyes de Gay-Lussac y Charles ———
+
+export const celsius = (K: number) => K - 273
+
+/**
+ * Gay-Lussac (V = cte.): p₁/T₁ = p₂/T₂. Charles (p = cte.): V₁/T₁ = V₂/T₂. Las temperaturas, en kelvin.
+ * Se pasa la que falta como null.
+ */
+export function proporcionalT(x1: number, T1: number, x2: number | null, T2: number | null): number {
+  if (x2 === null && T2 !== null) return redondea((x1 * T2) / T1)
+  if (T2 === null && x2 !== null) return redondea((x2 * T1) / x1)
+  throw new Error('Falta una sola magnitud')
+}
+export const gayLussac = proporcionalT
+export const charles = proporcionalT
+
+/** La magnitud que no cambia decide la ley. */
+export const LEYES_GASES = {
+  T: { ley: 'Boyle-Mariotte', formula: 'p₁·V₁ = p₂·V₂', varian: 'la presión y el volumen', relacion: 'inversamente proporcionales', grafica: 'una hipérbola' },
+  V: { ley: 'Gay-Lussac', formula: 'p₁/T₁ = p₂/T₂', varian: 'la presión y la temperatura', relacion: 'directamente proporcionales', grafica: 'una recta que pasa por el (0, 0)' },
+  p: { ley: 'Charles', formula: 'V₁/T₁ = V₂/T₂', varian: 'el volumen y la temperatura', relacion: 'directamente proporcionales', grafica: 'una recta que pasa por el (0, 0)' },
+} as const
+export type Constante = keyof typeof LEYES_GASES
+export const NOMBRE_CONSTANTE: Record<Constante, string> = { T: 'temperatura', V: 'volumen', p: 'presión' }
+
+/** ¿Es una tabla de valores de una ley? Boyle: p·V igual en todas; Gay-Lussac y Charles: x/T igual en todas. */
+export function cumpleLey(c: Constante, filas: [number, number][]): boolean {
+  const k = filas.map(([a, b]) => redondea(c === 'T' ? a * b : a / b))
+  return k.every((x) => x === k[0])
+}
